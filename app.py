@@ -17,7 +17,7 @@ client = app.test_client()
 engine = create_engine(
     f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}"
 )
-a = 1
+
 
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
