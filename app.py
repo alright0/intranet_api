@@ -5,8 +5,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from app1 import get_fig
+# from app1 import get_fig
 from pgaccess import VM
+
+# from ibea import ibea_date
+from datetime import date, datetime, timedelta
 
 app = Flask(__name__)
 
@@ -28,11 +31,38 @@ from models import *
 
 Base.metadata.create_all(bind=engine)
 
-# Главная страница
+
+def makedate(dt):
+
+    dt = datetime.strptime(dt[:10], "%Y-%m-%d")
+
+    dt2 = dt + timedelta(days=1)
+
+    return dt, dt2
+
+
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("base.html", plot=get_fig()), 200
 
+    return render_template("base.html")
+
+
+"""
+@app.route("/daily_camera_report", methods=["GET", "POST"])
+def camera():
+
+    if request.method == "POST":
+        dt = request.form.get("dt")
+
+        dt = makedate(dt)
+
+        return render_template(
+            "req.html", dt=(dt[0], dt[1]), table=ibea_date(dt[0], dt[1])
+        )
+
+    else:
+        return render_template("req.html", dt="233")
+"""
 
 # api-ответ, возвращающий json из EN-VM01.ibea_agregate
 @app.route("/camera", methods=["GET"])
