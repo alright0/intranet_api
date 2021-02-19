@@ -1,12 +1,14 @@
 # import psycopg2
 import sqlalchemy as db
-from flask import Flask, jsonify, redirect, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 # from app1 import get_fig
 from pgaccess import VM
+
+from table import make_table
 
 # from ibea import ibea_date
 from datetime import date, datetime, timedelta
@@ -47,7 +49,6 @@ def index():
     return render_template("base.html")
 
 
-"""
 @app.route("/daily_camera_report", methods=["GET", "POST"])
 def camera():
 
@@ -57,17 +58,18 @@ def camera():
         dt = makedate(dt)
 
         return render_template(
-            "req.html", dt=(dt[0], dt[1]), table=ibea_date(dt[0], dt[1])
+            "camera_report.html", dt=(dt[0], dt[1]), table=make_table()
         )
 
     else:
-        return render_template("req.html", dt="233")
-"""
+        return render_template("camera_report.html", dt="Выберите дату")
+
 
 # api-ответ, возвращающий json из EN-VM01.ibea_agregate
-@app.route("/camera", methods=["GET"])
-def get_camera_info():
-    one = Camera.query.limit(5).all()
+@app.route("/camera/<line>", methods=["GET"])
+def get_camera_info(line):
+
+    one = Camera.query.filter(Camera.line == line).limit(5)
 
     serialized = []
     for cam in one:
@@ -84,6 +86,39 @@ def get_camera_info():
                 "rejected": cam.rejected,
             }
         )
+
+    if not serialized:
+        return {"message": "data not found"}
+
+    return jsonify(serialized)
+
+
+# Нахождение последней записи в базе
+@app.route("/camera/last/<line>", methods=["GET"])
+def get_camera_info_last(line):
+
+    try:
+        cam = (
+            Camera.query.filter(Camera.line_side == line)
+            .order_by(Camera.date_now.desc())
+            .first()
+        )
+
+        serialized = {
+            "id": cam.id,
+            "line": cam.line,
+            "line_side": cam.line_side,
+            "date_now": cam.date_now,
+            "job": cam.job,
+            "start_time": cam.start_time,
+            "last_part": cam.last_part,
+            "total": cam.total,
+            "rejected": cam.rejected,
+        }
+
+    except:
+        return {"message": "data not found"}, 400
+
     return jsonify(serialized)
 
 
@@ -95,4 +130,4 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port="5000", debug=True)
+    app.run(host="0.0.0.0", port="5000", debug=True)
