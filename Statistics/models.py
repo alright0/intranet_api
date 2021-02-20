@@ -1,4 +1,4 @@
-from app import db, sessionmaker, Base
+from Statistics.app import db, sessionmaker, Base
 
 
 class Camera(Base):
