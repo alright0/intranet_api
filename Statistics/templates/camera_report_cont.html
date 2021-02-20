@@ -17,7 +17,7 @@
     {% block content %}
     <div class="content">
         {% for line in lines %}
-        <p>{{line}} </p>
+        <p>{{line|safe}} </p>
         {% endfor %}
     </div>
     {% endblock %}

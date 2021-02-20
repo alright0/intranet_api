@@ -32,8 +32,8 @@ Base.metadata.create_all(bind=engine)
 
 # добавление Blueprints
 from .api.views import camera
-
-# from .api.site import views
+from .site.views import site
 
 # регистрация Blueprints
 app.register_blueprint(camera)
+app.register_blueprint(site)
