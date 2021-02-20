@@ -41,9 +41,21 @@ def get_camera_now(line):
     return jsonify(serialized)
 
 
-def camera_json_deserialize(json):
-    df = pd.read_json(json)
-    print(df)
+def camera_json_deserialize(json_response):
+    """Эта функция принимает последнюю запись из БД камеры и превращает ее в таблицу"""
+
+    # TODO перевести логику полностью внутрь таблицы
+
+    try:
+        converted_dict = json_response.json
+
+    except:
+
+        converted_dict = {"message": "data not found"}
+
+    df = pd.Series(converted_dict)
+    df = df.to_frame().transpose()
+
     return df.to_html()
 
 

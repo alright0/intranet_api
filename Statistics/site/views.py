@@ -22,7 +22,7 @@ IBEA_ADDRESS = [
     "LZ-2 B",
     "LZ-3",
     "LZ-4",
-    "LZ-5 A",
+    "123" "LZ-5 A",
     "LZ-5 B",
     "LZ-1 ST",
     "LZ-2 ST",
@@ -58,7 +58,7 @@ def camera_now():
     line_info = []
 
     for line in IBEA_ADDRESS:
-        line_info.append(get_camera_now(line))
+        line_info.append(camera_json_deserialize(get_camera_now(line)))
 
     return render_template(
         "camera_report_cont.html",
