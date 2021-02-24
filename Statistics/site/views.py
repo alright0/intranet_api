@@ -11,7 +11,13 @@ from Statistics.config import VM
 from Statistics.data.table import make_table
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
-from Statistics.logic.logic import get_camera_now, makedate, camera_json_deserialize
+from Statistics.logic.logic import (
+    get_camera_now,
+    makedate,
+    camera_json_deserialize,
+    get_line_status,
+)
+
 
 site = Blueprint("site", __name__)
 
@@ -56,6 +62,8 @@ def camera2():
 def camera_now():
 
     line_info = []
+
+    get_line_status()
 
     for line in IBEA_ADDRESS:
         line_info.append(camera_json_deserialize(get_camera_now(line)))

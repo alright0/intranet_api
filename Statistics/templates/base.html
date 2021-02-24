@@ -3,26 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
-    <title>make statistic easier</title>
+    <link rel="shortcut icon" href="../static/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
+    <title>Statistics</title>
 </head>
 
 <body>
 
-    <div class="header">
-        <a href="/">Домой</a> <br>
-        <a href="/daily_camera_report">Ежедневный отчет камер</a> <br>
-        <a href="/now_camera_report">Текущее состояние камер</a> <br>
+    <header>
+        <div class="logo">
+            <a href="/">
+                <img class="img_logo" src="../static/img/logo.png" alt="logo" width="200px">
+            </a>
+        </div>
+    </header>
+
+    <div class="nav">
+        <div class="topnav">
+            <a href="/daily_camera_report">Ежедневный отчет камер</a>
+            <a href="/now_camera_report">Текущее состояние камер</a>
+        </div>
     </div>
 
     <div class="content">
         {% block content %}<H1>Under Costruction</H1>{% endblock %}
     </div>
 
-    <!--
-    <div class="footer">
-        <p>2021</p>
-    </div>
--->
+
+    <footer>
+        <div class="logo_foot">
+            <a href="/"><img class="img_logo" src="../static/img/logo2.png" alt="logo" width="50px"></a>
+            <p>Silgan Metal Packaging 2021</p>
+        </div>
+    </footer>
+
 </body>
 
 
