@@ -6,10 +6,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from Statistics.config import VM
+from Statistics.config import VM, FC
 from Statistics.data.table import make_table
-from Statistics.models import Camera
+from Statistics.models import Camera, LineStatus
 from Statistics.schemas import CameraSchema
+
+
+def get_line_status():
+
+    line_status = LineStatus.query.filter(LineStatus.fc_line == "LL-02").first()
+
+    # print({"order": line_status.prod_order})
 
 
 def get_camera_now(line):
@@ -36,7 +43,7 @@ def get_camera_now(line):
         }
 
     except:
-        return {"message": "data not found"}
+        return jsonify({"message": "data not found"})
 
     return jsonify(serialized)
 
