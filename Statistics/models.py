@@ -41,15 +41,22 @@ class LineStatus(Base_fc):
     not_used_6 = db.Column("local_name", db.VARCHAR)
 
     @classmethod
-    def get_status(self, line):
-        return int(
-            LineStatus.query.with_entities(self.shift)
-            .filter(self.line_name == line)
-            .first()[0]
+    def is_working(self, line):
+        """Этот метод возвращает логическое значение: работает ли линия"""
+
+        return bool(
+            int(
+                LineStatus.query.with_entities(self.shift)
+                .filter(self.line_name == line)
+                .first()[0]
+            )
         )
 
 
 class fc_produkcja(Base_fc):
+    """Класс определяющий таблицу fc_produkcja - список заказов на линии.
+    Необходима, в основном, для нахождения имени оператора на линии"""
+
     __bind_key__ = "fc_engine"
     __tablename__ = "fc_produkcja"
 
@@ -70,18 +77,10 @@ class fc_produkcja(Base_fc):
     not_used_7 = db.Column("rejestr_dla_paczek", db.VARCHAR)
     not_used_8 = db.Column("kod_kreskowy_zbiorczy", db.VARCHAR)
 
-    @classmethod
-    def get_operator_id(self, line):
-        return (
-            fc_produkcja.query.with_entities(self.operator_id)
-            .filter(self.line_name == line)
-            .filter(self.order_end != None)
-            .order_by(self.order_end.desc())
-            .first()[0]
-        )
-
 
 class fc_users(Base_fc):
+    """Класс, определяющей таблицу fc_users - список работников, имеющих id в 4can"""
+
     __bind_key__ = "fc_engine"
     __tablename__ = "fc_users"
 
@@ -104,7 +103,17 @@ class fc_users(Base_fc):
     not_used_10 = db.Column("for_gr_user", db.VARCHAR)
 
     @classmethod
-    def get_operator_name(self, line, operator_id):
+    def get_operator_name(self, line):
+        """Этот метод принимает линию и возвращает имя и фамилию оператора"""
+
+        operator_id = (
+            fc_produkcja.query.with_entities(fc_produkcja.operator_id)
+            .filter(fc_produkcja.line_name == line)
+            .filter(fc_produkcja.order_end != None)
+            .order_by(fc_produkcja.order_end.desc())
+            .first()[0]
+        )
+
         operator_name = (
             fc_users.query.with_entities(self.first_name, self.last_name)
             .filter(fc_users.user_id == operator_id)

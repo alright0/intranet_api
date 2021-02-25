@@ -17,10 +17,9 @@ def get_line_status():
 
     line = "LP-01"
 
-    if LineStatus.get_status(line):
-        operator_id = fc_produkcja.get_operator_id(line)
+    if LineStatus.is_working(line):
 
-        print(fc_users.get_operator_name(line, operator_id))
+        print(fc_users.get_operator_name(line))
     else:
         pass
 
