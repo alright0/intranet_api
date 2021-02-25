@@ -14,10 +14,12 @@ app = Flask(__name__)
 # тестовый клиент для тестов
 client = app.test_client()
 
-# создание подключения к базе EN-VM01 и EN-DB05
+# создание подключения к базе EN-VM01
 cam_engine = create_engine(
     f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}"
 )
+
+# создание подключения к базе EN-DB05
 fc_engine = create_engine(
     f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}"
 )
@@ -40,9 +42,6 @@ Base_fc.query = session_fc.query_property()
 
 # Импорт моделей
 from Statistics.models import *
-
-# Base.metadata.create_all(bind=cam_engine)
-# Base.metadata.create_all(bind=fc_engine)
 
 # добавление Blueprints
 from .api.views import camera

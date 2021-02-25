@@ -11,13 +11,7 @@ from Statistics.config import VM
 from Statistics.data.table import make_table
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
-from Statistics.logic.logic import (
-    get_camera_now,
-    makedate,
-    camera_json_deserialize,
-    get_line_status,
-)
-
+from Statistics.logic.logic import *
 
 site = Blueprint("site", __name__)
 
@@ -28,7 +22,7 @@ IBEA_ADDRESS = [
     "LZ-2 B",
     "LZ-3",
     "LZ-4",
-    "123" "LZ-5 A",
+    "LZ-5 A",
     "LZ-5 B",
     "LZ-1 ST",
     "LZ-2 ST",
@@ -38,6 +32,7 @@ IBEA_ADDRESS = [
 # домашняя страница
 @site.route("/", methods=["GET"])
 def index():
+    get_line_status()
     return render_template("base.html")
 
 

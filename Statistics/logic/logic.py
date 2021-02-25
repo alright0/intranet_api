@@ -8,15 +8,21 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from Statistics.config import VM, FC
 from Statistics.data.table import make_table
-from Statistics.models import Camera, LineStatus
+from Statistics.models import Camera, LineStatus, fc_produkcja, fc_users
 from Statistics.schemas import CameraSchema
 
 
 def get_line_status():
+    """Эта функция возвращает  данные для таблицы текущего состояния: имя оператора"""
 
-    line_status = LineStatus.query.filter(LineStatus.fc_line == "LL-02").first()
+    line = "LP-01"
 
-    # print({"order": line_status.prod_order})
+    if LineStatus.get_status(line):
+        operator_id = fc_produkcja.get_operator_id(line)
+
+        print(fc_users.get_operator_name(line, operator_id))
+    else:
+        pass
 
 
 def get_camera_now(line):
