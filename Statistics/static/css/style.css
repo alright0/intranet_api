@@ -28,7 +28,12 @@ body{
     padding: 7px;
     max-width: 93%;
 }
+.ln{
+    height: 50%;
+    width: 0.125rem;
+    background: #d1d1d1;
 
+}
 footer{
     background: #70777d;
     width: 100%;
@@ -76,6 +81,93 @@ footer p{
     text-align: center;
 }
 
+.infoboard_container{
+    background: #f2f2f2;
+    width: 768px;
+    height: 100%;
+    margin: 0 auto;
+    /*padding: 7px;*/
+    border-radius: 8px;
+    box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
+    margin-top: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    padding-top: 7px;
+    /*align-content: space-evenly;*/
+    /*justify-content: space-evenly;*/
+}
+
+
+.infoboard_block{
+    background: #fafafa;
+    border-radius: 5px;
+    box-shadow: rgba(0,0,0,0.2) 0 2px 4px 1px;
+    width: 145px;
+    height: 300px;
+    margin: 0 0 7px 7px;
+}
+
+.infoboard_block:hover{
+    background: #FFF;
+}
+
+.infoboard_block_header{
+    margin:0 auto;
+	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
+    height: 12%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-evenly;
+    justify-content: space-around;
+}
+.infoboard_block_header p{
+    text-align: center;
+    font-weight: 400;
+    color: #70777d;
+}
+.infoboard_block_pair{
+    margin:0 auto;
+	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
+    height: 18%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-evenly;
+    justify-content: space-around;
+}
+.infoboard_block_pair p{
+    text-align: center;
+    font-weight: 400;
+    color: #70777d;
+}
+
+.infoboard_block_footer{
+    margin:0 auto;
+	/*box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);*/
+    height: 12%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-evenly;
+    justify-content: space-around;
+}
+
+
+
+.infoboard_block_footer p{
+    text-align: center;
+    font-weight: 400;
+    color: #70777d;
+}
+
+.infoboard_block_small {
+    width: 40%;
+    font-size: 10px;
+    font-weight: 200;
+}
+
 
 @media screen and (max-width: 768px){
 
@@ -84,8 +176,16 @@ footer p{
         justify-content: center;
     }
 
-
-
+    .infoboard_container{
+        width: 410px;
+        align-content: center;
+    }
+    
+    
+    .infoboard_block{
+        width: 47.5%;
+        min-width: 145px;
+    }
 
 }
 
@@ -97,5 +197,24 @@ footer p{
         flex-wrap: wrap; 
         flex-direction: column;
     }
+
+    .infoboard_container{
+        width: 200px;
+        align-content: center;
+    }
+        
+    .infoboard_block{
+        width: 93%;
+        min-width: 145px;
+    }
+
+}
+
+@media screen and (max-width: 320px){
+
+    /*
+    .infoboard_block{
+        width: 90%;
+    }*/
 
 }

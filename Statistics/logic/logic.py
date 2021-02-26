@@ -12,14 +12,29 @@ from Statistics.models import Camera, LineStatus, fc_produkcja, fc_users
 from Statistics.schemas import CameraSchema
 
 
-def get_line_status():
-    """Эта функция возвращает  данные для таблицы текущего состояния: имя оператора"""
+def generate_infoboard(line):
 
-    line = "LP-01"
+    if LineStatus.is_working(line):
+        pass
+    else:
+
+        result = """<div class="infoboard_block">
+                <div class="infoboard_block_header">
+                    <p>{{line}}</p>
+                </div>
+                <div class="infoboard_block_header">
+                    <p>STOP</p>
+                </div>"""
+
+        return 
+
+
+def get_line_status(line):
+    """Эта функция возвращает  данные для таблицы текущего состояния: имя оператора"""
 
     if LineStatus.is_working(line):
 
-        print(fc_users.get_operator_name(line))
+        return (fc_users.get_operator_name(line))
     else:
         pass
 

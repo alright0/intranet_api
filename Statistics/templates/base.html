@@ -6,7 +6,7 @@
     <link rel="shortcut icon" href="../static/favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
-    <title>Statistics</title>
+    <title>{% block title %} {% endblock %}</title>
 </head>
 
 <body>
@@ -25,11 +25,15 @@
             <a href="/now_camera_report">Текущее состояние камер</a>
         </div>
     </div>
+    <main>
 
-    <div class="content">
-        {% block content %}<H1>Under Costruction</H1>{% endblock %}
-    </div>
+        {% block content %}
+        <div class="content">
+            <H1>Under Costruction</H1>
+        </div>
+        {% endblock %}
 
+    </main>
 
     <footer>
         <div class="logo_foot">

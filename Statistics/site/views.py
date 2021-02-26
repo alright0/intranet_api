@@ -29,11 +29,30 @@ IBEA_ADDRESS = [
 ]
 
 
+LINES = [
+    "LZ-01",
+    "LZ-02",
+    "LZ-03",
+    "LZ-04",
+    "LZ-05",
+    "LN-01",
+    "LN-03",
+    "LL-01",
+    "LL-02",
+    "LP-01",
+]
+
+
 # домашняя страница
 @site.route("/", methods=["GET"])
 def index():
-    get_line_status()
-    return render_template("base.html")
+
+    a = """<div class="infoboard_block_header">
+                    <p>{{line}}</p>
+                </div>"""
+
+    # line_status = "RUN" else "STOP" if LineStatus.is_working(line)
+    return render_template("index.html", LINES=LINES, a=a)
 
 
 # страница с ежедневным отчетом
@@ -57,8 +76,6 @@ def camera2():
 def camera_now():
 
     line_info = []
-
-    get_line_status()
 
     for line in IBEA_ADDRESS:
         line_info.append(camera_json_deserialize(get_camera_now(line)))

@@ -79,7 +79,7 @@ class fc_produkcja(Base_fc):
 
 
 class fc_users(Base_fc):
-    """Класс, определяющей таблицу fc_users - список работников, имеющих id в 4can"""
+    """Класс, определяющий таблицу fc_users - список работников, имеющих id в 4can"""
 
     __bind_key__ = "fc_engine"
     __tablename__ = "fc_users"
@@ -104,8 +104,9 @@ class fc_users(Base_fc):
 
     @classmethod
     def get_operator_name(self, line):
-        """Этот метод принимает линию и возвращает имя и фамилию оператора"""
+        """Этот метод принимает линию и возвращает строку с именем и фамилией оператора"""
 
+        # получение id оператора на основании линии
         operator_id = (
             fc_produkcja.query.with_entities(fc_produkcja.operator_id)
             .filter(fc_produkcja.line_name == line)
@@ -114,6 +115,7 @@ class fc_users(Base_fc):
             .first()[0]
         )
 
+        # получение имени оператора на основании его id
         operator_name = (
             fc_users.query.with_entities(self.first_name, self.last_name)
             .filter(fc_users.user_id == operator_id)
