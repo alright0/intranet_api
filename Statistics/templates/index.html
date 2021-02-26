@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+<!DOCTYPE html>
+
+<head>
+    <title>{% block title %}Statistics{% endblock %}</title>
+</head>
+
+<body>
+
+    <main>
+        {% block content %}
+
+
+
+        <div class="infoboard_container">
+            {% for line in LINES %}
+
+
+            <div class="infoboard_block">
+                <div class="infoboard_block_header">
+                    <p>{{line}}</p>
+                </div>
+                <div class="infoboard_block_header">
+                    <p>RUN</p>
+                </div>
+                <div class="infoboard_block_header">
+                    <p>Иван Иванов</p>
+                </div>
+
+                <div class="infoboard_block_pair">
+                    <div class="infoboard_block_small">
+                        <p>INPUT: 530021</p>
+                    </div>
+                    <div class="ln"></div>
+                    <div class="infoboard_block_small">
+                        <p>OUTPUT: 412043</p>
+                    </div>
+                </div>
+                <div class="infoboard_block_pair">
+                    <div class="infoboard_block_small">
+                        <p>A: 0.51%</p>
+                    </div>
+                    <div class="ln"></div>
+                    <div class="infoboard_block_small">
+                        <p>B: 2.65%</p>
+                    </div>
+                </div>
+                <div class="infoboard_block_content">
+
+                </div>
+                <div class="infoboard_block_footer">
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+
+
+        {% endblock %}
+    </main>
+
+</body>
+
+</html>
