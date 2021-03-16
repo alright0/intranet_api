@@ -12,46 +12,79 @@
         {% block content %}
 
 
-
         <div class="infoboard_container">
+
+            <!--  цикл просмотра всех линий для заполнения табло -->
             {% for line in LINES %}
-
-
             <div class="infoboard_block">
+
+                <!--  Линия  -->
                 <div class="infoboard_block_header">
                     <p>{{line}}</p>
                 </div>
+
+                <!--  статус линии  -->
                 <div class="infoboard_block_header">
-                    <p>RUN</p>
+                    <p>{{lines_dict[line]['status']}}</p>
                 </div>
+
+                <!--  Кастомизация полей  -->
+                {% if lines_dict[line]['status'] != 'STOP' %}
+
+                <!--  оператор  -->
                 <div class="infoboard_block_header">
-                    <p>Иван Иванов</p>
+                    <p>{{lines_dict[line]['operator']}}</p>
                 </div>
+
+                <div class="infoboard_block_header">
+                    <p>11512</p>
+                </div>
+
+                <!--  вход-выход  -->
+                <div class="infoboard_block_pair">
+                    <div class="infoboard_block_small">
+                        <p>INPUT:</p>
+                        <p>{{lines_dict[line]['input']}}</p>
+                    </div>
+                    <div class="ln"></div>
+                    <div class="infoboard_block_small">
+                        <p>OUTPUT:</p>
+                        <p>{{lines_dict[line]['output']}}</p>
+                    </div>
+                </div>
+
+                <!--  Кастомизация камер. Может быть одна камера или две  -->
+                {% if lines_dict[line]['camera']|length == 2 %}
 
                 <div class="infoboard_block_pair">
                     <div class="infoboard_block_small">
-                        <p>INPUT: 530021</p>
+                        <p>A:</p>
+                        <p>{{lines_dict[line]['camera'][0]}}</p>
                     </div>
                     <div class="ln"></div>
                     <div class="infoboard_block_small">
-                        <p>OUTPUT: 412043</p>
+                        <p>B:</p>
+                        <p>{{lines_dict[line]['camera'][1]}}</p>
                     </div>
                 </div>
-                <div class="infoboard_block_pair">
-                    <div class="infoboard_block_small">
-                        <p>A: 0.51%</p>
-                    </div>
-                    <div class="ln"></div>
-                    <div class="infoboard_block_small">
-                        <p>B: 2.65%</p>
-                    </div>
+
+                {% elif lines_dict[line]['camera']|count == 1 %}
+                <div class="infoboard_block_header">
+                    <p>{{lines_dict[line]['camera'][0]}}</p>
                 </div>
+
+                {% endif %}
                 <div class="infoboard_block_content">
 
                 </div>
                 <div class="infoboard_block_footer">
 
                 </div>
+
+                {% else %}
+
+
+                {% endif %}
             </div>
             {% endfor %}
         </div>

@@ -47,12 +47,16 @@ LINES = [
 @site.route("/", methods=["GET"])
 def index():
 
-    a = """<div class="infoboard_block_header">
-                    <p>{{line}}</p>
-                </div>"""
+    lines_status = []
 
+    for line in LINES:
+        lines_status.append(get_line_status(line))
+
+    lines_dict = dict(zip(LINES, lines_status))
+
+    print(lines_dict)
     # line_status = "RUN" else "STOP" if LineStatus.is_working(line)
-    return render_template("index.html", LINES=LINES, a=a)
+    return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
 
 
 # страница с ежедневным отчетом

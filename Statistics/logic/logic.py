@@ -11,32 +11,54 @@ from Statistics.data.table import make_table
 from Statistics.models import Camera, LineStatus, fc_produkcja, fc_users
 from Statistics.schemas import CameraSchema
 
-
-def generate_infoboard(line):
-
-    if LineStatus.is_working(line):
-        pass
-    else:
-
-        result = """<div class="infoboard_block">
-                <div class="infoboard_block_header">
-                    <p>{{line}}</p>
-                </div>
-                <div class="infoboard_block_header">
-                    <p>STOP</p>
-                </div>"""
-
-        return 
+IBEA_CAMERA_MAP = {
+    "LZ-01": ["LZ-1 A", "LZ-1 B"],
+    "LZ-02": ["LZ-2 A", "LZ-2 B"],
+    "LZ-03": ["LZ-3"],
+    "LZ-04": ["LZ-4"],
+    "LZ-05": ["LZ-5 A", "LZ-5 B"],
+}
 
 
 def get_line_status(line):
-    """Эта функция возвращает  данные для таблицы текущего состояния: имя оператора"""
+    """Эта функция возвращает данные для таблицы текущего состояния: имя оператора"""
 
-    if LineStatus.is_working(line):
+    line_status_dict = dict()
 
-        return (fc_users.get_operator_name(line))
+    line_status = LineStatus.get_line_param(line)
+
+    if int(line_status.shift):
+
+        line_status_dict["status"] = LineStatus.get_status(line)
+        line_status_dict["operator"] = fc_users.get_operator_name(line)
+
+        line_status_dict["input"] = line_status.counter_start
+        line_status_dict["output"] = line_status.counter_end
+
+        if line in IBEA_CAMERA_MAP:
+            cam_sides = []
+            for cam_side in IBEA_CAMERA_MAP[line]:
+
+                cam_info = (
+                    Camera.query.filter(Camera.line_side == cam_side)
+                    .order_by(Camera.date_now.desc())
+                    .first()
+                )
+                cam_sides.append(
+                    "{:.2f}%".format(
+                        cam_info.rejected / cam_info.total * 100
+                        if cam_info.rejected > 0
+                        else 0
+                    )
+                )
+
+            line_status_dict["camera"] = cam_sides
+        else:
+            line_status_dict["camera"] = []
     else:
-        pass
+        line_status_dict["status"] = "STOP"
+
+    return line_status_dict
 
 
 def get_camera_now(line):

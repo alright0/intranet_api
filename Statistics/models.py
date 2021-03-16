@@ -2,6 +2,19 @@ from Statistics.app import db, sessionmaker, Base_cam, Base_fc
 
 
 class Camera(Base_cam):
+    """Класс описывает таблицу ``ibea_agregate`` в ``EN-VM01``\n
+    Таблица хранит данные с камер\n
+    доступные поля таблицы:\n
+    ``id`` - int - порядковый номер строки\n
+    ``line`` - str(10) - название линии(прим.: LZ-1)\n
+    ``line_side`` - str(10) - название камеры(прим.: LZ-1 A)\n
+    ``date_now`` - datetime - время записи в базу\n
+    ``job`` - str(50) - номер заказа(прим.: 10132)\n
+    ``start_time`` - datetime - дата и время открытия смены на камере\n
+    ``last_part`` - datetime - дата и время последнего прохождения крышки через камеру\n
+    ``total`` - int - всего проконтролировано\n
+    ``rejected`` - int - всего выброшено
+    """
 
     __bind_key__ = "cam_engine"
     __tablename__ = "ibea_agregate"
@@ -9,7 +22,6 @@ class Camera(Base_cam):
     id = db.Column(
         db.Integer, nullable=False, unique=True, primary_key=True, autoincrement=True
     )
-
     line = db.Column(db.String(10))
     line_side = db.Column(db.String(10))
     date_now = db.Column(db.DateTime)
@@ -19,8 +31,28 @@ class Camera(Base_cam):
     total = db.Column(db.Integer)
     rejected = db.Column(db.Integer)
 
+    @classmethod
+    def get_cam_defrate(line):
+        pass
+
 
 class LineStatus(Base_fc):
+    """Класс описывает таблицу ``up_line_def`` на ``EN-DB05``\n
+    Таблица хранит текущее состояние линий\n
+    Список доступных параметров:\n
+    ``line_name`` - str - название линии(прим.: LZ-01)\n
+    ``order`` - str - номер заказа(прим.: 11012)\n
+    ``shift`` - str/int - номер смены. Может быть ``0``,``1`` или ``2``.
+        0 - линия не работает
+        1 - дневная смена
+        2 - ночная смена
+    ``line_status`` - bool - запущена ли сейчас подача\n
+    ``counter_start`` - int - счетчик входа\n
+    ``counter_end`` - int - счетчик выхода\n
+    ``stop_time`` - int - время простоя в минутах. Макс 1440\n
+    ``puco_code`` - str - код PUCO(прим.: 000OGE04)
+    """
+
     __bind_key__ = "fc_engine"
     __tablename__ = "up_line_def"
 
@@ -41,20 +73,60 @@ class LineStatus(Base_fc):
     not_used_6 = db.Column("local_name", db.VARCHAR)
 
     @classmethod
-    def is_working(self, line):
-        """Этот метод возвращает логическое значение: работает ли линия"""
+    def get_line_param(self, line):
 
-        return bool(
-            int(
-                LineStatus.query.with_entities(self.shift)
-                .filter(self.line_name == line)
+        return LineStatus.query.filter(self.line_name == line).first()
+
+    # TODO: Заменить на join.
+    @classmethod
+    def get_status(self, line):
+        """Этот метод возвращает статус линии: работает ли она, стоит с кодом остановки или не работает"""
+
+        line_status = LineStatus.get_line_param(line)
+
+        status = line_status.puco_code[3:]
+        feed = line_status.stop_time
+
+        if status == "00000" and not feed:
+            description = "RUN"
+        elif status == "00000" and feed:
+            description = f"Причина не определена. {feed} минут(ы)"
+        else:
+            description = f"""{(
+                up_puco_code.query.with_entities(up_puco_code.name_ru)
+                .filter(up_puco_code.code == status)
                 .first()[0]
-            )
-        )
+            )}. {feed} минут(ы)"""
+
+        return description
 
 
+class up_puco_code(Base_fc):
+    """Класс описывает таблицу ``up_puco_code`` на ``EN-DB05``\n
+    таблица хранит описание кодов пуко\n
+    Список доступных параметров:\n
+    ``code`` - str - код остановки(прим.: OGE04)\n
+    ``name_eng`` - str - описание на английском\n
+    ``name_ru`` - str - описание на русском\n
+    ``group_eng`` - str - Название узла на англисйком(прим:. general, parter etc.)\n
+    ``group_ru`` - str - название узла на русском(прим.: основные, партер и т.д.)\n
+    ``id_line`` - str - список подходящих к этому коду линий\n
+    """
+
+    __bind_key__ = "fc_engine"
+    __tablename__ = "up_puco_code"
+
+    code = db.Column("id_code", db.String, primary_key=True)
+    name_eng = db.Column(db.String)
+    name_ru = db.Column(db.String)
+    group_eng = db.Column(db.String)
+    group_ru = db.Column(db.String)
+    id_line = db.Column(db.String)
+
+
+# TODO: добавить описание
 class fc_produkcja(Base_fc):
-    """Класс определяющий таблицу fc_produkcja - список заказов на линии.
+    """Класс определяющий таблицу ``fc_produkcja`` на ``EN-DB05``\n
     Необходима, в основном, для нахождения имени оператора на линии"""
 
     __bind_key__ = "fc_engine"
@@ -102,6 +174,7 @@ class fc_users(Base_fc):
     not_used_9 = db.Column("pay_mpk_user", db.VARCHAR)
     not_used_10 = db.Column("for_gr_user", db.VARCHAR)
 
+    # TODO: заменить на join
     @classmethod
     def get_operator_name(self, line):
         """Этот метод принимает линию и возвращает строку с именем и фамилией оператора"""
