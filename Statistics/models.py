@@ -1,4 +1,4 @@
-from Statistics.app import db, sessionmaker, Base_cam, Base_fc
+from Statistics.app import db, sessionmaker, Base_cam, Base_fc, fc_engine
 
 
 class Camera(Base_cam):
@@ -99,6 +99,41 @@ class LineStatus(Base_fc):
             )}. {feed} минут(ы)"""
 
         return description
+
+
+class as_line_speed(Base_fc):
+
+    __bind_key__ = "fc_engine"
+    __tablename__ = "as_line_speed"
+
+    order = db.Column("po_id", db.Text, unique=True, primary_key=True)
+    index = db.Column("product_id", db.VARCHAR)
+    line = db.Column("line_id", db.VARCHAR)
+    not_used_0 = ("line_speed", db.Integer)
+    not_used_1 = ("usage", db.Integer)
+
+
+class as_material_data(Base_fc):
+
+    __bind_key__ = "fc_engine"
+    __tablename__ = "as_material_data"
+
+    code = db.Column(db.VARCHAR, unique=True, primary_key=True)
+    index = db.Column("article", db.VARCHAR)
+    full_name = db.Column("the_name_of_the_holding_company", db.VARCHAR)
+    unit_ru = db.Column("unit", db.VARCHAR)
+    name = db.Column(db.VARCHAR)
+    name2 = db.Column("full_name", db.VARCHAR)
+    unit_en = db.Column("international_name_of_the_unit", db.VARCHAR)
+    quantity = db.Column("on_stock", db.NUMERIC)
+    not_used_0 = db.Column("libra_of_unit", db.VARCHAR)
+    not_used_1 = db.Column("volume_of_unit", db.VARCHAR)
+    not_used_2 = db.Column("material_type", db.VARCHAR)
+    not_used_3 = db.Column("valuation_class", db.VARCHAR)
+    not_used_4 = db.Column("material_format", db.VARCHAR)
+    not_used_5 = db.Column("qv_product_code", db.Integer)
+    not_used_6 = db.Column("plate_add_info", db.VARCHAR)
+    not_used_7 = db.Column("source_material", db.Integer)
 
 
 class up_puco_code(Base_fc):

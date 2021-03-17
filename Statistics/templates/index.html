@@ -4,13 +4,13 @@
 
 <head>
     <title>{% block title %}Statistics{% endblock %}</title>
+
 </head>
 
 <body>
 
     <main>
         {% block content %}
-
 
         <div class="infoboard_container">
 
@@ -20,7 +20,7 @@
 
                 <!--  Линия  -->
                 <div class="infoboard_block_header">
-                    <p>{{line}}</p>
+                    <p><b>{{line}}</b></p>
                 </div>
 
                 <!--  статус линии  -->
@@ -29,7 +29,7 @@
                 </div>
 
                 <!--  Кастомизация полей  -->
-                {% if lines_dict[line]['status'] != 'STOP' %}
+                {% if lines_dict[line]['status'] != 'STOP' and lines_dict[line]['status'] != 'Line Not Found' %}
 
                 <!--  оператор  -->
                 <div class="infoboard_block_header">
@@ -37,19 +37,19 @@
                 </div>
 
                 <div class="infoboard_block_header">
-                    <p>11512</p>
+                    <p><b>{{lines_dict[line]['order']}}</b>: {{lines_dict[line]['order_description']}}</p>
                 </div>
 
                 <!--  вход-выход  -->
                 <div class="infoboard_block_pair">
                     <div class="infoboard_block_small">
                         <p>INPUT:</p>
-                        <p>{{lines_dict[line]['input']}}</p>
+                        <p><b>{{lines_dict[line]['input']}}</b></p>
                     </div>
                     <div class="ln"></div>
                     <div class="infoboard_block_small">
                         <p>OUTPUT:</p>
-                        <p>{{lines_dict[line]['output']}}</p>
+                        <p><b>{{lines_dict[line]['output']}}</b></p>
                     </div>
                 </div>
 
@@ -59,18 +59,24 @@
                 <div class="infoboard_block_pair">
                     <div class="infoboard_block_small">
                         <p>A:</p>
-                        <p>{{lines_dict[line]['camera'][0]}}</p>
+                        <p><b>{{lines_dict[line]['camera'][0]}}</b></p>
+                        <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
                     </div>
                     <div class="ln"></div>
                     <div class="infoboard_block_small">
                         <p>B:</p>
-                        <p>{{lines_dict[line]['camera'][1]}}</p>
+                        <p><b>{{lines_dict[line]['camera'][1]}}</b></p>
+                        <p>{{lines_dict[line]['camera_last_part'][1]}}</p>
                     </div>
                 </div>
 
                 {% elif lines_dict[line]['camera']|count == 1 %}
                 <div class="infoboard_block_header">
-                    <p>{{lines_dict[line]['camera'][0]}}</p>
+                    <p><b>{{lines_dict[line]['camera'][0]}}</b></p>
+                    {% if lines_dict[line]['camera_last_part'] %}
+                    <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
+                    {% endif %}
+
                 </div>
 
                 {% endif %}
@@ -92,6 +98,7 @@
 
 
         {% endblock %}
+
     </main>
 
 </body>

@@ -7,40 +7,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from Statistics.config import VM
+from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
 from Statistics.logic.logic import *
 
 site = Blueprint("site", __name__)
-
-IBEA_ADDRESS = [
-    "LZ-1 A",
-    "LZ-1 B",
-    "LZ-2 A",
-    "LZ-2 B",
-    "LZ-3",
-    "LZ-4",
-    "LZ-5 A",
-    "LZ-5 B",
-    "LZ-1 ST",
-    "LZ-2 ST",
-]
-
-
-LINES = [
-    "LZ-01",
-    "LZ-02",
-    "LZ-03",
-    "LZ-04",
-    "LZ-05",
-    "LN-01",
-    "LN-03",
-    "LL-01",
-    "LL-02",
-    "LP-01",
-]
 
 
 # домашняя страница
@@ -55,7 +28,7 @@ def index():
     lines_dict = dict(zip(LINES, lines_status))
 
     print(lines_dict)
-    # line_status = "RUN" else "STOP" if LineStatus.is_working(line)
+
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
 
 
