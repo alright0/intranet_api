@@ -15,7 +15,7 @@ from Statistics.schemas import CameraSchema
 def order_description(order):
     """Принимает номер заказа в виде строки(прим.: ``10012`` ``00513``) и возвращает описание.\n
     Соответствует двум запросам:\n
-    ``SELECT po_id(index) FROM as_line_speed WHERE product_id(order) = (your_order)``\n
+    ``SELECT po_id(index) FROM as_line_speed WHERE product_id(order) = '{order}'``\n
     ``SELECT the_name_of_the_holding_company(full_name) FROM as_material_data WHERE article(index) = (first_query)``
     """
 

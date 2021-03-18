@@ -45,7 +45,7 @@ def camera2():
         )
 
     else:
-        return render_template("camera_report.html", dt="Выберите дату")
+        return render_template("camera_report.html", dt="Выберите дату"), 200
 
 
 # страница с текущим положением дел по камерам

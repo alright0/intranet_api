@@ -33,10 +33,6 @@ class Camera(Base_cam):
     total = db.Column(db.Integer)
     rejected = db.Column(db.Integer)
 
-    @classmethod
-    def get_cam_defrate(line):
-        pass
-
 
 class LineStatus(Base_fc):
     """Класс описывает таблицу ``up_line_def`` на ``EN-DB05``\n
@@ -52,7 +48,9 @@ class LineStatus(Base_fc):
     ``counter_start`` - int - счетчик входа\n
     ``counter_end`` - int - счетчик выхода\n
     ``stop_time`` - int - время простоя в минутах. Макс 1440\n
-    ``puco_code`` - str - код PUCO(прим.: 000OGE04)
+    ``puco_code`` - str - код PUCO(прим.: 000OGE04)\n
+    Доступные методы:\n
+    ``get_line_param`` - принимает название линию и возвращает список доступных параметров по ней
     """
 
     __bind_key__ = "fc_engine"
@@ -116,6 +114,20 @@ class as_line_speed(Base_fc):
 
 
 class as_material_data(Base_fc):
+    """Класс описывает таблицу ``as_material_data`` на ``EN-DB05``\n
+    таблица хранит информацию о материалах, находящихся или находившихся на складе\n
+    Список доступных полей:\n
+    ``code`` - str - уникальный код 1С (прим:. 000004517)\n
+    ``index`` - str - Внутренний артикул компании (прим:. 5-05-0-354-0-00002).
+        Хорошо работает для жести и выпускаемых продуктов\n
+    ``full_name`` - str - международное название (прим.: HFCP  BLK/White).
+        Хорошо работает для жести и выпускаемых продуктов\n
+    ``unit_ru`` - единицы измерения на русском языке(прим:. кг, шт)\n
+    ``name`` - название продукта на русском языке(прим:. Стопорная шайба)\n
+    ``name2`` - то же самое, что и name\n
+    ``unit_en`` - единицы измерения на английском языке\n
+    ``quantity`` - количество на складе
+    """
 
     __bind_key__ = "fc_engine"
     __tablename__ = "as_material_data"
@@ -125,17 +137,17 @@ class as_material_data(Base_fc):
     full_name = db.Column("the_name_of_the_holding_company", db.VARCHAR)
     unit_ru = db.Column("unit", db.VARCHAR)
     name = db.Column(db.VARCHAR)
-    name2 = db.Column("full_name", db.VARCHAR)
+    not_used_0 = db.Column("full_name", db.VARCHAR)
     unit_en = db.Column("international_name_of_the_unit", db.VARCHAR)
     quantity = db.Column("on_stock", db.NUMERIC)
-    not_used_0 = db.Column("libra_of_unit", db.VARCHAR)
-    not_used_1 = db.Column("volume_of_unit", db.VARCHAR)
-    not_used_2 = db.Column("material_type", db.VARCHAR)
-    not_used_3 = db.Column("valuation_class", db.VARCHAR)
-    not_used_4 = db.Column("material_format", db.VARCHAR)
-    not_used_5 = db.Column("qv_product_code", db.Integer)
-    not_used_6 = db.Column("plate_add_info", db.VARCHAR)
-    not_used_7 = db.Column("source_material", db.Integer)
+    not_used_1 = db.Column("libra_of_unit", db.VARCHAR)
+    not_used_2 = db.Column("volume_of_unit", db.VARCHAR)
+    not_used_3 = db.Column("material_type", db.VARCHAR)
+    not_used_4 = db.Column("valuation_class", db.VARCHAR)
+    not_used_5 = db.Column("material_format", db.VARCHAR)
+    not_used_6 = db.Column("qv_product_code", db.Integer)
+    not_used_7 = db.Column("plate_add_info", db.VARCHAR)
+    not_used_8 = db.Column("source_material", db.Integer)
 
 
 class up_puco_code(Base_fc):
@@ -161,10 +173,21 @@ class up_puco_code(Base_fc):
     id_line = db.Column(db.String)
 
 
-# TODO: добавить описание
 class fc_produkcja(Base_fc):
-    """Класс определяющий таблицу ``fc_produkcja`` на ``EN-DB05``\n
-    Необходима, в основном, для нахождения имени оператора на линии"""
+    """Класс описывает таблицу ``fc_produkcja`` на ``EN-DB05``\n
+    таблица хранит список заказов, даты начала и конца заказа,\n
+    код исполняющего оператора, выпуск по заказу и т.п.\n
+    смотреть в этой таблице нечего, она нужна как промежуточная для\n
+    получения имени текущего оператора на линии
+    Список доступных параметров:\n
+    ``order`` - str - номер заказа\n
+    ``operator_id`` - str - код оператора\n
+    ``order_start`` - timestamp - дата начала выполнения заказа\n
+    ``order_end`` - timestamp - дата конца выполнения заказа\n
+    ``line_name`` - str - название линии(прим:. LN-01)\n
+    ``finished`` - float - выпуск по заказу(прим.: 2342,000)\n
+    ``active_order`` - активен ли заказ(``1`` - на линии, ``0`` - нет)\n
+    """
 
     __bind_key__ = "fc_engine"
     __tablename__ = "fc_produkcja"
@@ -188,7 +211,16 @@ class fc_produkcja(Base_fc):
 
 
 class fc_users(Base_fc):
-    """Класс, определяющий таблицу fc_users - список работников, имеющих id в 4can"""
+    """Класс описывает таблицу ``fc_users`` на ``EN-DB05``\n
+    Таблица хранит список пользователей(операторов)\n
+    Список доступных параметров:\n
+    ``user_id`` - str - код оператора (прим.: ``065``)\n
+    ``first_name`` - str - имя оператора \n
+    ``last_name`` - str - фамилия оператора\n
+    ``password_user`` - str - пароль к 4CAN\n
+    ``hired`` - str - работает ли человек в настоящий момент\n
+    ``admin_user`` - str - является ли админом\n
+    """
 
     __bind_key__ = "fc_engine"
     __tablename__ = "fc_users"
@@ -214,7 +246,18 @@ class fc_users(Base_fc):
     # TODO: заменить на join
     @classmethod
     def get_operator_name(self, line):
-        """Этот метод принимает линию и возвращает строку с именем и фамилией оператора"""
+        """Этот метод принимает линию и возвращает строку с именем и фамилией оператора
+        соответствует запросам:\n
+        ``SELECT id_brygadz
+        FROM fc_produkcja
+        WHERE kod_maszyny='{line}' AND data_zakoncz_zmiana IS NOT NULL
+        ORDER BY data_zakoncz_zmiana DESC
+        LIMIT 1``
+
+        ``SELECT imie_user, nazwisko_user
+        FROM fc_users
+        WHERE login_user = PREV``
+        """
 
         # получение id оператора на основании линии
         operator_id = (
