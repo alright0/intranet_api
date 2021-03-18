@@ -16,86 +16,154 @@
 
             <!--  цикл просмотра всех линий для заполнения табло -->
             {% for line in LINES %}
-            <div class="infoboard_block">
-
-                <!--  Линия  -->
-                <div class="infoboard_block_header">
-                    <p><b>{{line}}</b></p>
-                </div>
-
-                <!--  статус линии  -->
-                <div class="infoboard_block_header">
-                    <p>{{lines_dict[line]['status']}}</p>
-                </div>
-
-                <!--  Кастомизация полей  -->
-                {% if lines_dict[line]['status'] != 'STOP' and lines_dict[line]['status'] != 'Line Not Found' %}
-
-                <!--  оператор  -->
-                <div class="infoboard_block_header">
-                    <p>{{lines_dict[line]['operator']}}</p>
-                </div>
-
-                <div class="infoboard_block_header">
-                    <p><b>{{lines_dict[line]['order']}}</b>: {{lines_dict[line]['order_description']}}</p>
-                </div>
-
-                <!--  вход-выход  -->
-                <div class="infoboard_block_pair">
-                    <div class="infoboard_block_small">
-                        <p>INPUT:</p>
-                        <p><b>{{lines_dict[line]['input']}}</b></p>
-                    </div>
-                    <div class="ln"></div>
-                    <div class="infoboard_block_small">
-                        <p>OUTPUT:</p>
-                        <p><b>{{lines_dict[line]['output']}}</b></p>
-                    </div>
-                </div>
-
-                <!--  Кастомизация камер. Может быть одна камера или две  -->
-                {% if lines_dict[line]['camera']|length == 2 %}
-
-                <div class="infoboard_block_pair">
-                    <div class="infoboard_block_small">
-                        <p><b>A: {{lines_dict[line]['camera'][0]}}</b></p>
-                        <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
-                    </div>
-                    <div class="ln"></div>
-                    <div class="infoboard_block_small">
-                        <p><b>B: {{lines_dict[line]['camera'][1]}}</b></p>
-                        <p>{{lines_dict[line]['camera_last_part'][1]}}</p>
-                    </div>
-                </div>
-
-                {% elif lines_dict[line]['camera']|count == 1 %}
-                <div class="infoboard_block_header">
-                    <p><b>{{lines_dict[line]['camera'][0]}}</b></p>
-                    {% if lines_dict[line]['camera_last_part'] %}
-                    <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
-                    {% endif %}
-
-                </div>
-
-                {% endif %}
-                <div class="infoboard_block_content">
-
-                </div>
-                <div class="infoboard_block_footer">
-
-                </div>
-
-                {% else %}
 
 
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
+            <!--  в этом месте блоку infoboard_block присваивается id в зависимости от статуса линии  -->
+            {% if lines_dict[line]['status'] == 'RUN' %}
+            <div class="infoboard_block id run" id='run'>
+
+                {% elif lines_dict[line]['status'] == 'STOP' %}
+                <div class="infoboard_block" id='stop'>
+
+                    {% elif lines_dict[line]['status'] == 'Line not found' %}
+                    <div class="infoboard_block" id='not_found'>
+
+                        {% else %}
+                        <div class="infoboard_block">
+                            {% endif %}
+
+                            <!--  Линия  -->
+                            <div class="infoboard_block_header">
+                                <p style="
+                                    font-size: 18pt; 
+                                    font-weight: 400;">{{line}}</p>
+                            </div>
+
+                            <!--  статус линии: если статус линии равен STOP|RUN - размер шрифта 14, иначе стандартный  -->
+                            <div class="infoboard_block_header">
+
+                                {% if lines_dict[line]['status'] == 'STOP' or lines_dict[line]['status'] == 'RUN'%}
+                                <p style="font-size: 14pt;">{{lines_dict[line]['status']}}</p>
+
+                                {% else %}
+                                <p>{{lines_dict[line]['status']}}</p>
+
+                                {% endif %}
+                            </div>
 
 
+                            <!--  Кастомизация полей. 
+                            Если статус линии не равен STOP|Line Not Found - добавить все блоки, 
+                            иначе ничего не добавлять  -->
+                            {% if lines_dict[line]['status'] != 'STOP' and lines_dict[line]['status'] != 'Line not
+                            found' %}
 
-        {% endblock %}
+                            <!--  оператор линии:  -->
+                            <div class="infoboard_block_header">
+                                <p style="font-size: 10pt;">{{lines_dict[line]['operator']}}</p>
+                            </div>
+
+                            <!--  номер заказа и его описание  -->
+                            <div class="infoboard_block_header">
+                                <p><b>{{lines_dict[line]['order']}}</b>: {{lines_dict[line]['order_description']}}</p>
+                            </div>
+
+
+                            <!--  счетчики входа-выхода  -->
+                            {% if lines_dict[line]['camera_last_part'] %}
+                            <div class="infoboard_block_pair">
+
+                                {% else %}
+                                <div class="infoboard_block_pair" style="box-shadow: none;">
+                                    {% endif %}
+
+                                    <div class="infoboard_block_small">
+                                        <p>INPUT:</p>
+                                        <p><b>{{lines_dict[line]['input']}}</b></p>
+                                    </div>
+
+                                    <div class="ln"></div> <!-- разделитель -->
+
+                                    <div class="infoboard_block_small">
+                                        <p>OUTPUT:</p>
+                                        <p><b>{{lines_dict[line]['output']}}</b></p>
+                                    </div>
+                                </div>
+
+
+                                <!--  Кастомизация камер. Может быть одна камера или две  -->
+                                {% if lines_dict[line]['camera']|length == 2 %}
+
+                                <div class="infoboard_block_pair" style="box-shadow: none;">
+                                    <div class="infoboard_block_small">
+
+                                        {% if lines_dict[line]['camera'][0] > 1 %}
+                                        <p style="color:#c05e5e;"><b>{{ "A:
+                                                {:.2}%".format(lines_dict[line]['camera'][0])
+                                                }}</b></p>
+
+                                        {% else %}
+                                        <p><b>{{ "A: {:.2}%".format(lines_dict[line]['camera'][0]) }}</b></p>
+
+                                        {% endif %}
+
+                                        <!-- к-во минут с момента последнего измерения -->
+                                        <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
+
+
+                                    </div>
+
+                                    <div class="ln"></div> <!-- разделитель -->
+
+                                    <div class="infoboard_block_small">
+
+                                        {% if lines_dict[line]['camera'][1] > 1 %}
+                                        <p style="color:#c05e5e;"><b>{{ "B:
+                                                {:.2}%".format(lines_dict[line]['camera'][1])
+                                                }}</b></p>
+
+                                        {% else %}
+                                        <p><b>{{ "B: {:.2}%".format(lines_dict[line]['camera'][1]) }}</b></p>
+
+                                        {% endif %}
+
+                                        <!-- к-во минут с момента последнего измерения -->
+                                        <p>{{lines_dict[line]['camera_last_part'][1]}}</p>
+
+                                    </div>
+                                </div>
+
+                                <!--  Если количество камер = 1, то поместить в контейнер другого типа  -->
+                                {% elif lines_dict[line]['camera']|count == 1 %}
+                                <div class="infoboard_block_header" style="box-shadow: none;">
+
+                                    {% if lines_dict[line]['camera'][0] > 1 %}
+                                    <p style="color:#c05e5e;"><b>{{ "A: {:.2}%".format(lines_dict[line]['camera'][0])
+                                            }}</b>
+                                    </p>
+
+                                    {% else %}
+                                    <p><b>{{ "{:.2}%".format(lines_dict[line]['camera'][0]) }}</b></p>
+
+                                    {% endif %}
+
+                                    <!--  Проверка ошибок: если информации о браке нет, то передать, то не передавать описание  -->
+                                    {% if lines_dict[line]['camera_last_part'] %}
+                                    <p>{{lines_dict[line]['camera_last_part'][0]}}</p>
+
+                                    {% endif %}
+
+                                </div>
+
+                                {% endif %}
+
+                                {% endif %}
+                            </div>
+
+                            {% endfor %}
+                        </div>
+
+                        {% endblock %}
 
     </main>
 

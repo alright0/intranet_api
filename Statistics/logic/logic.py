@@ -32,15 +32,15 @@ def order_description(order):
 
 def get_line_status(line):
     """Возвращает словарь состояния линии со следующими переменными:\n
-    ``status`` - состояние линии ``STOP`` | ``RUN`` | ``PUCO CODE. N минут(ы)``\n
+    ``status`` - состояние линии ``STOP`` | ``RUN`` | ``PUCO CODE. 3 минут(ы)``\n
     ``operator`` - имя и фамилия оператора ``Иван Иванов``\n
     ``input`` - счетчик входа линии ``5 513``\n
     ``output`` - счетчик выхода линии ``3 312``\n
     ``order`` - номер заказа ``90312``\n
     ``order_description`` - описание заказа ``HFB 80 2W/FL`` | ``Description not found``\n
-    ``camera`` - список текущего процента брака по камерам ``['2.14%', '0.55%']`` | ``['0.51%']`` | ``[]``\n
+    ``camera`` - список текущего процента брака по камерам ``['2.14', '0.55']`` | ``['0.51']`` | ``[]``\n
     ``camera_last_part`` - время простоя в минутах
-        ['0 минут(ы) назад','4 минут(ы) назад'] - 2 камеры
+        ['0 минут(ы) назад','4 минут(ы)'] - 2 камеры
         ['0 минут(ы) назад]                     - 1 камера
         []                                      - нет камер
         0                                       - ошибка
@@ -49,6 +49,7 @@ def get_line_status(line):
     line_status_dict = dict()
 
     try:
+        # получение списка параметров линии
         line_status = LineStatus.get_line_param(line)
 
         if int(line_status.shift):
@@ -87,18 +88,16 @@ def get_line_status(line):
                         )
 
                         cam_sides.append(
-                            "{:.2f}%".format(
-                                cam_info.rejected / cam_info.total * 100
-                                if cam_info.rejected > 0
-                                else 0
-                            )
+                            cam_info.rejected / cam_info.total * 100
+                            if cam_info.rejected > 0
+                            else 0
                         )
 
                         cam_last_part = (
-                            datetime.today() - cam_info.last_part
+                            cam_info.date_now - cam_info.last_part
                         ).seconds // 60
 
-                        cam_time.append(f"{cam_last_part} минут(ы) назад")
+                        cam_time.append(f"{cam_last_part} минут(ы)")
 
                     line_status_dict["camera"] = cam_sides
                     line_status_dict["camera_last_part"] = cam_time

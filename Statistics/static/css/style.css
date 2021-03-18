@@ -29,8 +29,8 @@ body{
     max-width: 93%;
 }
 .ln{
-    height: 50%;
-    width: 0.125rem;
+
+    width: 0.1px;
     background: #d1d1d1;
 
 }
@@ -43,7 +43,7 @@ footer{
     margin: 0 auto;
     position: fixed;
     text-align: center;
-    display: flex;
+    display: none;/*flex;*/
     flex-wrap: wrap;
     flex-direction: column;
     justify-content: center;
@@ -83,7 +83,7 @@ footer p{
 
 .infoboard_container{
     background: #f2f2f2;
-    width: 754px;
+    width: 905px;
     height: 100%;
     margin: 0 auto;
     padding: 7px;
@@ -91,35 +91,54 @@ footer p{
     box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
     margin-top: 25px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, 145px);
+    grid-template-columns: repeat(5, 175px);
     grid-gap: 7px;
-    /*flex-wrap: wrap;*/
-    /*flex-direction: row;*/
-    /*padding-top: 7px;*/
-    /*align-content: space-evenly;*/
     justify-content: center;
 }
 
 
 .infoboard_block{
-    background: #fafafa;
+    background: #fffff9; /* желтый */
     border-radius: 5px;
     box-shadow: rgba(0,0,0,0.2) 0 2px 4px 1px;
-    min-width: 145px;
-    max-width: 250px;
+    max-width: 190px;
     height: 300px;
-    /*margin: 0 0 7px 7px;*/
+}
+
+/* Окрашивание линий в зависмости от статуса */
+.infoboard_block#run{
+    background: #fafff9; /* зеленый */
+}
+
+.infoboard_block#stop{
+    background: #fafafa; /* серый */
+}
+
+.infoboard_block#not_found{
+    background: #fff9f9; /* красный */
+}
+
+/* Белый цвет при наведении на разные id этого класса*/
+.infoboard_block#run:hover{
+    background: rgb(235, 255, 234); /* зеленый */
+}
+
+.infoboard_block#not_found:hover{
+    background: rgb(255, 234, 234); /* красный */
+}
+.infoboard_block#stop:hover{
+    background: #FFF; /* серый */
 }
 
 .infoboard_block:hover{
-    background: #FFF;
+    background: rgb(254, 255, 234); /* желтый */
 }
 
 .infoboard_block_header{
     margin:0 auto;
 	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
     height: 12%;
-
+    padding: 7px 10px 3px 10px;
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
@@ -132,10 +151,14 @@ footer p{
     font-size: 10px;
     color: #70777d;
 }
+
+
+
+
 .infoboard_block_pair{
     margin:0 auto;
 	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
-    height: 18%;
+    height: 15%;
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
@@ -173,8 +196,30 @@ footer p{
     font-weight: 200;
 }
 
+/*
+@media screen and (orientation: portrait){
 
-@media screen and (max-width: 768px){
+    .logo{
+        justify-content: center;
+    }
+
+    .infoboard_container{
+        width: 80%;
+
+        grid-template-columns: repeat(1, 100%);
+    }
+    
+    
+    
+    .infoboard_block{
+        width: 100%;
+        height: 100%;
+    }
+
+}
+*/
+
+@media screen and (max-width: 960px){
 
     .logo{
         /* перемещение логотипа в центр */
@@ -182,9 +227,9 @@ footer p{
     }
 
     .infoboard_container{
-        width: 70%;
+        width: 542px;
         /*align-content: center;*/
-        grid-template-columns: repeat(auto-fit, minmax(145px,155px));
+        grid-template-columns: repeat(auto-fit, 175px);
     }
     
     /*
@@ -196,7 +241,8 @@ footer p{
 }
 
 
-@media screen and (max-width: 420px){
+
+@media screen and (max-width: 600px){
     .topnav{
         /* перестроение ссылок навбара в колонку */
         display: flex;
@@ -205,9 +251,9 @@ footer p{
     }
 
     .infoboard_container{
-        width: 200px;
+        width: 360px;
         align-content: center;
-        grid-template-columns: 200px;
+        grid-template-columns: repeat(auto-fit, 175px);
     }
         /*
     .infoboard_block{
@@ -217,11 +263,4 @@ footer p{
 
 }
 
-@media screen and (max-width: 320px){
 
-    /*
-    .infoboard_block{
-        width: 90%;
-    }*/
-
-}

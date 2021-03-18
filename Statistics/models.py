@@ -8,7 +8,8 @@ class Camera(Base_cam):
     ``id`` - int - порядковый номер строки\n
     ``line`` - str(10) - название линии(прим.: LZ-1)\n
     ``line_side`` - str(10) - название камеры(прим.: LZ-1 A)\n
-    ``date_now`` - datetime - время записи в базу\n
+    ``date_now`` - datetime - системное время камеря\n
+    ``date_now_sys`` - datetime - системное время системы\n
     ``job`` - str(50) - номер заказа(прим.: 10132)\n
     ``start_time`` - datetime - дата и время открытия смены на камере\n
     ``last_part`` - datetime - дата и время последнего прохождения крышки через камеру\n
@@ -25,6 +26,7 @@ class Camera(Base_cam):
     line = db.Column(db.String(10))
     line_side = db.Column(db.String(10))
     date_now = db.Column(db.DateTime)
+    date_now_sys = db.Column(db.DateTime)
     job = db.Column(db.String(50))
     start_time = db.Column(db.DateTime)
     last_part = db.Column(db.DateTime)
