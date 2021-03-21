@@ -22,12 +22,14 @@ def index():
 
     lines_status = []
 
+    # get_df()
+
     for line in LINES:
         lines_status.append(get_line_status(line))
 
     lines_dict = dict(zip(LINES, lines_status))
 
-    print(lines_dict)
+    # print(lines_dict)
 
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
 

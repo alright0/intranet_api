@@ -34,6 +34,46 @@ class Camera(Base_cam):
     rejected = db.Column(db.Integer)
 
 
+class up_puco_export(Base_fc):
+    """Класс описывает таблицу ``up_puco_export`` на ``EN-DB05``\n
+    Таблица хранит все остановки всех линий\n
+    Список доступных параметров:\n
+    ``line`` - str - линия (прим.: ``LN-01``)\n
+    ``start_date`` - str - дата начала остановки\n
+    ``start_time`` - str - время начала остановки\n
+    ``last_run_time`` - str - время работы между текущей остановкой и предыдущей\n
+    ``end_date`` - str - дата конца остановки\n
+    ``end_time`` - str - время конца остановки\n
+    ``order`` - str - номер заказа\n
+    ``shift`` - str - смена\n
+    ``puco_code`` - str - код остановки\n
+    ``counter_start`` - str - счетчик входа\n
+    ``counter_end`` - str - счетчик выхода\n
+    """
+
+    __bind_key__ = "fc_engine"
+    __tablename__ = "up_puco_export"
+
+    line = db.Column("a1", db.String)
+    not_used_0 = db.Column("a2", db.String, unique=True, primary_key=True)
+    not_used_1 = db.Column("a3", db.String)
+    start_date = db.Column("a4", db.String)
+    start_time = db.Column("a5", db.String)
+    last_run_time = db.Column("a6", db.String)
+    end_date = db.Column("a7", db.String)
+    end_time = db.Column("a8", db.String)
+    order = db.Column("a9", db.String)
+    not_used_2 = db.Column("a10", db.String)
+    not_used_3 = db.Column("a11", db.String)
+    shift = db.Column("a12", db.String)
+    not_used_4 = db.Column("a13", db.String)
+    puco_code = db.Column("a14", db.String)
+    not_used_5 = db.Column("a15", db.String)
+    counter_start = db.Column("a16", db.String)
+    counter_end = db.Column("a17", db.String)
+    not_used_6 = db.Column("a18", db.String)
+
+
 class LineStatus(Base_fc):
     """Класс описывает таблицу ``up_line_def`` на ``EN-DB05``\n
     Таблица хранит текущее состояние линий\n

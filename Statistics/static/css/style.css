@@ -106,27 +106,27 @@ footer p{
 }
 
 /* Окрашивание линий в зависмости от статуса */
-.infoboard_block#run{
+.infoboard_block#RUN{
     background: #fafff9; /* зеленый */
 }
 
-.infoboard_block#stop{
+.infoboard_block#STOP{
     background: #fafafa; /* серый */
 }
 
-.infoboard_block#not_found{
+.infoboard_block#Line_not_found{
     background: #fff9f9; /* красный */
 }
 
 /* Белый цвет при наведении на разные id этого класса*/
-.infoboard_block#run:hover{
+.infoboard_block#RUN:hover{
     background: rgb(235, 255, 234); /* зеленый */
 }
 
-.infoboard_block#not_found:hover{
+.infoboard_block#Line_not_found:hover{
     background: rgb(255, 234, 234); /* красный */
 }
-.infoboard_block#stop:hover{
+.infoboard_block#STOP:hover{
     background: #FFF; /* серый */
 }
 

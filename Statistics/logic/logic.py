@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import sqlalchemy as db
 from flask import Flask, jsonify, redirect, render_template, request, url_for
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, cast
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -10,6 +10,50 @@ from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
+
+
+def get_df():
+
+    dt = 20170802
+    dt2 = 20170803
+
+    qu = (
+        up_puco_export.query.with_entities(
+            up_puco_export.line,
+            up_puco_export.order,
+            up_puco_export.counter_start,
+            up_puco_export.counter_end,
+            up_puco_export.shift,
+            up_puco_export.puco_code,
+            up_puco_export.start_date,
+            up_puco_export.start_time,
+            up_puco_export.end_date,
+            up_puco_export.end_time,
+        )
+        .filter(
+            (cast(up_puco_export.start_date, db.Integer) >= dt)
+            & (cast(up_puco_export.start_date, db.Integer) <= dt2)
+            & (cast(up_puco_export.shift, db.Integer) > 0)
+        )
+        .order_by(up_puco_export.start_date, up_puco_export.end_date)
+    )
+
+    df = pd.read_sql_query(sql=str(qu), con=fc_engine)
+
+    print(qu)
+
+    columns = [
+        "Line",  # a1
+        "Order",  # a9
+        "Counter IN",  # a16
+        "Counter OUT",  # a17
+        "Shift",  # a12
+        "Stop Code",  # a14
+        "DateStart",  # a4
+        "TimeStart",  # a5
+        "DateEnd",  # a7
+        "TimeEnd",  # a8
+    ]
 
 
 def order_description(order):
@@ -36,14 +80,26 @@ def get_line_status(line):
     ``operator`` - имя и фамилия оператора ``Иван Иванов``\n
     ``input`` - счетчик входа линии ``5 513``\n
     ``output`` - счетчик выхода линии ``3 312``\n
-    ``order`` - номер заказа ``90312``\n
-    ``order_description`` - описание заказа ``HFB 80 2W/FL`` | ``Description not found``\n
-    ``camera`` - список текущего процента брака по камерам ``['2.14', '0.55']`` | ``['0.51']`` | ``[]``\n
-    ``camera_last_part`` - время простоя в минутах
+    ``order`` - словарь с ключами ``order`` - номер заказа, ``description`` - описанеие заказа \n
+    ``camera`` - словарь с ключами ``defrate`` - процент брака, ``last_meas`` - количество минут \n
+        с момента последнего измерения\n
         ['0 минут(ы) назад','4 минут(ы)'] - 2 камеры
         ['0 минут(ы) назад]                     - 1 камера
         []                                      - нет камер
         0                                       - ошибка
+
+    Пример:
+        {
+        "status": "Причина не определена. 24 минут(ы)",
+        "operator": "Алексей Ведров",
+        "input": "1 412",
+        "output": "109 562",
+        "order": {"order": "10163", "description": "EOER 083 W+FL/FL"},
+        "camera": {
+            "defrate": [1.0020991147211828, 1.9277460340641488],
+            "last_meas": ["23 минут(ы)", "23 минут(ы)"],
+            },
+        }
     """
 
     line_status_dict = dict()
@@ -56,21 +112,26 @@ def get_line_status(line):
 
             line_status_dict["status"] = LineStatus.get_status(line)
             line_status_dict["operator"] = fc_users.get_operator_name(line)
+
             line_status_dict["input"] = "{:,}".format(
                 line_status.counter_start
             ).replace(",", " ")
             line_status_dict["output"] = "{:,}".format(line_status.counter_end).replace(
                 ",", " "
             )
-            line_status_dict["order"] = line_status.order
+
+            line_status_dict["order"] = {}
+            line_status_dict["order"]["order"] = line_status.order
 
             # описание заказа
             try:
-                line_status_dict["order_description"] = order_description(
+                line_status_dict["order"]["description"] = order_description(
                     line_status.order
                 )
             except:
-                line_status_dict["order_description"] = "Description Not Found"
+                line_status_dict["order_description"] = "Description not found"
+
+            line_status_dict["camera"] = {}
 
             # процент брака по камерам. Возвращается список от 0 до 2 элементов
             try:
@@ -90,7 +151,7 @@ def get_line_status(line):
                         cam_sides.append(
                             cam_info.rejected / cam_info.total * 100
                             if cam_info.rejected > 0
-                            else 0
+                            else 0.0
                         )
 
                         cam_last_part = (
@@ -99,14 +160,14 @@ def get_line_status(line):
 
                         cam_time.append(f"{cam_last_part} минут(ы)")
 
-                    line_status_dict["camera"] = cam_sides
-                    line_status_dict["camera_last_part"] = cam_time
+                    line_status_dict["camera"]["defrate"] = cam_sides
+                    line_status_dict["camera"]["last_meas"] = cam_time
                 else:
-                    line_status_dict["camera"] = []
-                    line_status_dict["camera_last_part"] = []
+                    line_status_dict["camera"]["defrate"] = []
+                    line_status_dict["camera"]["last_meas"] = []
             except:
-                line_status_dict["camera"] = ["--/--"]
-                line_status_dict["camera_last_part"] = 0
+                line_status_dict["camera"]["defrate"] = ["--/--"]
+                line_status_dict["camera"]["last_meas"] = 0
         else:
             line_status_dict["status"] = "STOP"
 
@@ -114,6 +175,7 @@ def get_line_status(line):
         line_status_dict["status"] = "Line not found"
 
     finally:
+        print(line_status_dict)
         return line_status_dict
 
 
