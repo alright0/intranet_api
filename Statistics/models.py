@@ -1,4 +1,6 @@
 from Statistics.app import db, sessionmaker, Base_cam, Base_fc, fc_engine
+from sqlalchemy import cast
+import pandas as pd
 
 
 class Camera(Base_cam):
@@ -72,6 +74,33 @@ class up_puco_export(Base_fc):
     counter_start = db.Column("a16", db.String)
     counter_end = db.Column("a17", db.String)
     not_used_6 = db.Column("a18", db.String)
+
+    @classmethod
+    def get_production_info(self, dt, dt2, line):
+
+        query_info = (
+            self.query.with_entities(
+                self.line,
+                self.order,
+                self.counter_start,
+                self.counter_end,
+                self.shift,
+                self.puco_code,
+                self.start_date,
+                self.start_time,
+                self.end_date,
+                self.end_time,
+            )
+            .filter(
+                (cast(self.start_date, db.Integer) >= dt)
+                & (cast(self.start_date, db.Integer) <= dt2)
+                & (cast(self.shift, db.Integer) > 0)
+                & (self.line == line)
+            )
+            .order_by(self.start_date, self.end_date)
+        )
+
+        return query_info
 
 
 class LineStatus(Base_fc):

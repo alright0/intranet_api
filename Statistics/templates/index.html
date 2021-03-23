@@ -102,10 +102,10 @@
                         <div class="infoboard_block_small">
 
                             {% if camera_defrate[0] > 1 %}
-                            <p style="color:#c05e5e;"><b>{{ "A: {:.2}%".format(camera_defrate[0]) }}</b></p>
+                            <p style="color:#c05e5e;"><b>{{ "A: {:.2f}%".format(camera_defrate[0]) }}</b></p>
 
                             {% else %}
-                            <p><b>{{ "A: {:.2}%".format(camera_defrate[0]) }}</b></p>
+                            <p><b>{{ "A: {:.2f}%".format(camera_defrate[0]) }}</b></p>
 
                             {% endif %}
 
@@ -120,10 +120,10 @@
                         <div class="infoboard_block_small">
 
                             {% if camera_defrate[1] > 1 %}
-                            <p style="color:#c05e5e;"><b>{{ "B: {:.2}%".format(camera_defrate[1]) }}</b></p>
+                            <p style="color:#c05e5e;"><b>{{ "B: {:.2f}%".format(camera_defrate[1]) }}</b></p>
 
                             {% else %}
-                            <p><b>{{ "B: {:.2}%".format(camera_defrate[1]) }}</b></p>
+                            <p><b>{{ "B: {:.2f}%".format(camera_defrate[1]) }}</b></p>
 
                             {% endif %}
 
@@ -138,10 +138,10 @@
                     <div class="infoboard_block_header" style="box-shadow: none;">
 
                         {% if camera_defrate[0] > 1 %}
-                        <p style="color:#c05e5e;"><b>{{ "{:.2}%".format(camera_defrate[0]) }}</b></p>
+                        <p style="color:#c05e5e;"><b>{{ "{:.2f}%".format(camera_defrate[0]) }}</b></p>
 
                         {% else %}
-                        <p><b>{{ "{:.2}%".format(camera_defrate[0]) }}</b></p>
+                        <p><b>{{ "{:.2f}%".format(camera_defrate[0]) }}</b></p>
 
                         {% endif %}
 

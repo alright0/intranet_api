@@ -10,50 +10,15 @@ from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
+from Statistics.logic.dataframes import *
 
 
 def get_df():
 
-    dt = 20170802
-    dt2 = 20170803
+    dt = 20210320
+    dt2 = 20210321
 
-    qu = (
-        up_puco_export.query.with_entities(
-            up_puco_export.line,
-            up_puco_export.order,
-            up_puco_export.counter_start,
-            up_puco_export.counter_end,
-            up_puco_export.shift,
-            up_puco_export.puco_code,
-            up_puco_export.start_date,
-            up_puco_export.start_time,
-            up_puco_export.end_date,
-            up_puco_export.end_time,
-        )
-        .filter(
-            (cast(up_puco_export.start_date, db.Integer) >= dt)
-            & (cast(up_puco_export.start_date, db.Integer) <= dt2)
-            & (cast(up_puco_export.shift, db.Integer) > 0)
-        )
-        .order_by(up_puco_export.start_date, up_puco_export.end_date)
-    )
-
-    df = pd.read_sql_query(sql=str(qu), con=fc_engine)
-
-    print(qu)
-
-    columns = [
-        "Line",  # a1
-        "Order",  # a9
-        "Counter IN",  # a16
-        "Counter OUT",  # a17
-        "Shift",  # a12
-        "Stop Code",  # a14
-        "DateStart",  # a4
-        "TimeStart",  # a5
-        "DateEnd",  # a7
-        "TimeEnd",  # a8
-    ]
+    print(get_df_lvl_0(dt, dt2, "LZ-01"))
 
 
 def order_description(order):
@@ -154,6 +119,7 @@ def get_line_status(line):
                             else 0.0
                         )
 
+                        # TODO: привязать время камеры к системному времени(date_now_sys)
                         cam_last_part = (
                             cam_info.date_now - cam_info.last_part
                         ).seconds // 60
@@ -175,7 +141,7 @@ def get_line_status(line):
         line_status_dict["status"] = "Line not found"
 
     finally:
-        print(line_status_dict)
+        # print(line_status_dict)
         return line_status_dict
 
 

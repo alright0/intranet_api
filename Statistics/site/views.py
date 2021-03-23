@@ -16,13 +16,19 @@ from Statistics.logic.logic import *
 site = Blueprint("site", __name__)
 
 
+@site.route("/pp", methods=["GET"])
+def production_plan():
+
+    pp_df = get_month_table()
+
+    return render_template("production_plan.html", tabl=pp_df)
+
+
 # домашняя страница
 @site.route("/", methods=["GET"])
 def index():
 
     lines_status = []
-
-    # get_df()
 
     for line in LINES:
         lines_status.append(get_line_status(line))

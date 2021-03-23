@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+<!DOCTYPE html>
+
+<head>
+    <title>{% block title %}Production Plan{% endblock %}</title>
+
+</head>
+
+<body>
+
+
+    <main>
+        {% block content %}
+        <div class="production plan_graphs"></div>
+        <div class="production_plan_table">{{tabl|safe}}</div>
+        {% endblock %}
+    </main>
+
+
+
+
+</body>
+
+</html>
