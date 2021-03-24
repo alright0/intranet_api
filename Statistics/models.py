@@ -78,26 +78,23 @@ class up_puco_export(Base_fc):
     @classmethod
     def get_production_info(self, dt, dt2, line):
 
-        query_info = (
-            self.query.with_entities(
-                self.line,
-                self.order,
-                self.counter_start,
-                self.counter_end,
-                self.shift,
-                self.puco_code,
-                self.start_date,
-                self.start_time,
-                self.end_date,
-                self.end_time,
-            )
-            .filter(
-                (cast(self.start_date, db.Integer) >= dt)
-                & (cast(self.start_date, db.Integer) <= dt2)
-                & (cast(self.shift, db.Integer) > 0)
-                & (self.line == line)
-            )
-            .order_by(self.start_date, self.end_date)
+        query_info = self.query.with_entities(
+            self.line,
+            self.order,
+            self.counter_start,
+            self.counter_end,
+            self.shift,
+            self.puco_code,
+            self.start_date,
+            self.start_time,
+            self.end_date,
+            self.end_time,
+        ).filter(
+            (cast(self.start_date, db.Integer) >= dt)
+            & (cast(self.start_date, db.Integer) <= dt2)
+            & (cast(self.shift, db.Integer) > 0)
+            & (self.puco_code != "00000000")
+            & (self.line == line)
         )
 
         return query_info

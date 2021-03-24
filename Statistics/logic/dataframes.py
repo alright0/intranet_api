@@ -1,20 +1,27 @@
+import calendar
+import json
 from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
+import math
+
+import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import sqlalchemy as db
+from dateutil.relativedelta import relativedelta
 from flask import Flask, jsonify, redirect, render_template, request, url_for
-from sqlalchemy import create_engine, cast
+from plotly.subplots import make_subplots
+from plotly.utils import PlotlyJSONEncoder
+
+from sqlalchemy import cast, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-import numpy as np
-import calendar
-
-import plotly.graph_objects as go
 
 from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
+
+# import plotly.express as px
 
 
 def _get_month():
@@ -46,6 +53,8 @@ def _get_df_lvl_0(dt, dt2, line):
     """
 
     df_lvl_0 = pd.DataFrame(up_puco_export.get_production_info(dt, dt2, line))
+
+    # df_lvl_0.to_csv(r"\\en-fs01\en-public\STP\Display\API\site\1.csv", sep=";")
 
     if not df_lvl_0.empty:
 
@@ -108,22 +117,24 @@ def _get_df_lvl_0(dt, dt2, line):
         )
 
         # отрезание отрицетельных остановок(время начала меньше времени окончания)
-        df_lvl_0 = df_lvl_0.loc[df_lvl_0["stop_minutes"] > 0]
+        df_lvl_0 = df_lvl_0.loc[(df_lvl_0["stop_minutes"] > 1)]
 
         del df_lvl_0["start_date"]
         del df_lvl_0["start_time"]
         del df_lvl_0["end_date"]
         del df_lvl_0["end_time"]
 
+        df_lvl_0.sort_values(by=["date_start_time"], inplace=True)
+
+        df_lvl_0 = df_lvl_0.loc[
+            (df_lvl_0["date_start_time"] < df_lvl_0["date_end_time"])
+        ]
+
         # разделение на коды выпуска и остановки
         df_temp = df_lvl_0.copy()
 
         df_lvl_0["date_stop"] = df_lvl_0["date_start_time"]
         df_temp["date_stop"] = df_temp["date_end_time"]
-
-        df_lvl_0["status"] = "RUN"
-        df_temp["status"] = "STOP"
-        df_lvl_0["puco_code"] = "RUN"
 
         df_lvl_1 = [df_lvl_0, df_temp]
         df_lvl_1 = pd.concat(df_lvl_1)
@@ -132,10 +143,12 @@ def _get_df_lvl_0(dt, dt2, line):
         del df_lvl_1["date_end_time"]
         del df_lvl_1["stop_minutes"]
 
-        df_lvl_1 = df_lvl_1.sort_values(by=["date_stop"])
+        df_lvl_1 = df_lvl_1.sort_values(by=["date_stop", "counter_end"])
 
         # время события
         df_lvl_1["minutes"] = df_lvl_1["date_stop"].diff().fillna(pd.Timedelta(days=0))
+
+        df_lvl_1 = df_lvl_1.loc[(df_lvl_1["minutes"].dt.seconds > 1)]
 
         df_lvl_1["sheets"] = (
             df_lvl_1["counter_end"].diff().fillna(0).clip(lower=0).astype(int)
@@ -147,21 +160,31 @@ def _get_df_lvl_0(dt, dt2, line):
             drop=True
         )
 
+        df_lvl_1["status"] = (
+            df_lvl_1["counter_start"].diff().fillna(0).clip(lower=0).astype(int)
+        )
+
+        df_lvl_1["status"] = df_lvl_1["status"].apply(lambda x: "RUN" if x else "STOP")
+        df_lvl_1["puco_code"] = df_lvl_1[["puco_code", "status"]].apply(
+            lambda x: "RUN" if x[1] == "RUN" else x, axis=1
+        )
+
         # переразметка дат под соответствие сменам. Если смена переходит из одного
         # дня в другой, то дату необходимо сместить на 8 часов, иначе ничего не менять
         df_lvl_1["date"] = (
-            df_lvl_1["date_stop", "shift"]
+            df_lvl_1[["date_stop", "shift"]]
             .apply(
-                lambda x, y: x
-                if x > datetime(x.year, x.month, x.day, 8) and y == 2
-                else x - timedelta(hours=8)
+                lambda x: x[0]
+                if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8) or x[1] == 1
+                else x[0] - timedelta(hours=8),
+                axis=1,
             )
             .astype(str)
             .str[:10]
         )
 
-        print(df_lvl_1)
-        # df_lvl_1.to_csv(r"\\en-fs01\en-public\STP\Display\API\site\asd.csv", sep=";")
+        # print(df_lvl_1)
+        # df_lvl_1.to_csv(r"\\en-fs01\en-public\STP\Display\API\site\1.csv", sep=";")
 
         return df_lvl_1
     else:
@@ -234,7 +257,7 @@ def get_month_table():
 
     df_list, line_list = [], []
 
-    for line in ["LL-01", "LL-02"]:  # LINES:
+    for line in LINES:
         df = _get_df_lvl_0(dates[0], dates[1], line)
 
         if not df.empty:
@@ -250,7 +273,10 @@ def get_month_table():
             line_list.append(line)
 
     df2 = pd.pivot_table(
-        df2, index=[df2["date"], "shift"], values=line_list, aggfunc="sum"
+        df2,
+        index=[df2["date"], "shift"],
+        values=line_list,
+        aggfunc="sum",
     ).reset_index()
 
     df2["date"] = df2["date"].astype(str)
@@ -268,10 +294,40 @@ def get_month_table():
 
     for line in line_list:
         df3[line] = df3[line].astype(int)
-    return df3.to_html()
 
     # fig = go.Figure(data=go.Bar(x=(df3["date_stop"], df3["shift"]), y=df3["LL-02"]))
+
     # fig.show()
+
+    fig2 = make_subplots(rows=5, cols=2, start_cell="bottom-left")
+
+    for i in range(len(line_list)):
+
+        # print(math.ceil((i + 1) / 2 if i > 0 else 1), i)
+
+        fig2.add_trace(
+            go.Bar(x=df3["letter"], y=df3[line_list[i]], name=line_list[i]),
+            row=math.ceil((i + 1) / 2),
+            col=1 if i % 2 == 0 else 2,
+        )
+
+    fig2.update_layout(margin=dict(t=0, l=0, b=0, r=0), height=900)
+
+    # fig2.update_layout(width=500, height=500)
+    # fig2.show()
+
+    html = (
+        df3.style.format({"LL-01": "{:,}"})
+        .highlight_max(subset=line_list)
+        .hide_index()
+        .render()
+    )
+
+    plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
+
+    # print(plot_json)
+
+    return html, plot_json
 
     def get_month_by_let():
         pass

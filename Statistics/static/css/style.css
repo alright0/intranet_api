@@ -152,9 +152,6 @@ footer p{
     color: #70777d;
 }
 
-
-
-
 .infoboard_block_pair{
     margin:0 auto;
 	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
@@ -183,7 +180,6 @@ footer p{
 }
 
 
-
 .infoboard_block_footer p{
     text-align: center;
     font-weight: 400;
@@ -195,6 +191,31 @@ footer p{
     font-size: 10px;
     font-weight: 200;
 }
+
+
+/* классы production_plan.html */
+
+.production_plan{
+    display:flex;
+}
+
+.production_plan_graphs{
+    background: blanchedalmond;
+    width:50%;
+}
+
+.production_plan_table{
+    background: #f2f2f2;
+    width:50%;
+}
+
+.production_plan_table tr{
+
+    font-size: 9pt;
+
+}
+
+/* конец классов production_plan.html*/
 
 /*
 @media screen and (orientation: portrait){

@@ -12,8 +12,16 @@
 
     <main>
         {% block content %}
-        <div class="production plan_graphs"></div>
-        <div class="production_plan_table">{{tabl|safe}}</div>
+        <div class="production_plan">
+            <div class="production_plan_graphs" id='main_graph'>
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+                <script>
+                    var graph = {{ plot | safe }};
+                    Plotly.plot('main_graph', graph, { width: '500px' });
+                </script>
+            </div>
+            <div class="production_plan_table">{{table|safe}}</div>
+        </div>
         {% endblock %}
     </main>
 

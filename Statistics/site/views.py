@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-
+import pandas as pd
 
 import sqlalchemy as db
 from flask import Flask, jsonify, redirect, render_template, request, url_for, Blueprint
@@ -19,9 +19,9 @@ site = Blueprint("site", __name__)
 @site.route("/pp", methods=["GET"])
 def production_plan():
 
-    pp_df = get_month_table()
+    df = get_month_table()
 
-    return render_template("production_plan.html", tabl=pp_df)
+    return render_template("production_plan.html", table=df[0], plot=df[1])
 
 
 # домашняя страница
