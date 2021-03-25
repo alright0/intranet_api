@@ -22,6 +22,13 @@ from Statistics.models import *
 from Statistics.schemas import CameraSchema
 
 # import plotly.express as px
+class up_puco_table:
+    def __init__(self):
+        pass
+
+
+def _parsedata(dt=datetime.today()):
+    pass
 
 
 def _get_month():
@@ -41,7 +48,7 @@ def _get_month():
 
 
 def _get_df_lvl_0(dt, dt2, line):
-    """Функция принимает запрос из ``up_puco_export`` на ``EN-DB05`` и
+    """Принимает запрос из ``up_puco_export`` на ``EN-DB05`` и
     возвращает обработанный DataFrame готовый к\n
     дальнейшей обработке, построению таблиц и графиков\n
     Пример возвращаемого фрейма:\n
@@ -184,7 +191,6 @@ def _get_df_lvl_0(dt, dt2, line):
         )
 
         # print(df_lvl_1)
-        # df_lvl_1.to_csv(r"\\en-fs01\en-public\STP\Display\API\site\1.csv", sep=";")
 
         return df_lvl_1
     else:
@@ -247,6 +253,40 @@ def _month_range():
     return letter_df
 
 
+def _line_green(val):
+    """Окрашивает выпуск линий больше 100% в зеленый"""
+
+    return [
+        "color: green; font-weight:bold" if v > LINE_OUTPUT[val.name] else ""
+        for v in val
+    ]
+
+
+def _line_red(val):
+    """Окрашивает выпуск линий меньше 25% в красный"""
+
+    return [
+        "color: red; font-weight:bold"
+        if v < LINE_OUTPUT[val.name] / 4 and v > 0
+        else ""
+        for v in val
+    ]
+
+
+def _line_max(val):
+    """Выделяет 1 смену с максимальным выпуском"""
+
+    # Сначала создается массив значений, совпадающих с максимальным,
+    # затем выделяются ненулевые значения, чтобы линии в начале месяца
+    # не светили желтым. Далее эти значения сравниваются
+    is_max = val == val.max()
+    is_null = [v for v in val]
+
+    real_max = is_max & is_null
+
+    return ["background-color: yellow; font-weight:bold" if v else "" for v in real_max]
+
+
 def get_month_table():
 
     # переопределение даты для запроса в df_lvl_0
@@ -257,7 +297,7 @@ def get_month_table():
 
     df_list, line_list = [], []
 
-    for line in LINES:
+    for line in ["LL-01", "LL-02", "LZ-04"]:  # LINES:
         df = _get_df_lvl_0(dates[0], dates[1], line)
 
         if not df.empty:
@@ -295,6 +335,11 @@ def get_month_table():
     for line in line_list:
         df3[line] = df3[line].astype(int)
 
+    # даты из формата 2021/01/02 в 02.01.2021
+    df3["date_stop"] = df3["date_stop"].apply(
+        lambda x: datetime.strftime(datetime.strptime(x, "%Y-%m-%d"), "%d.%m.%Y")
+    )
+
     # fig = go.Figure(data=go.Bar(x=(df3["date_stop"], df3["shift"]), y=df3["LL-02"]))
 
     # fig.show()
@@ -303,25 +348,56 @@ def get_month_table():
 
     for i in range(len(line_list)):
 
-        # print(math.ceil((i + 1) / 2 if i > 0 else 1), i)
-
         fig2.add_trace(
-            go.Bar(x=df3["letter"], y=df3[line_list[i]], name=line_list[i]),
+            go.Bar(
+                x=df3["letter"],
+                y=df3[line_list[i]],
+                name=line_list[i],
+                hovertext=line_list[i],
+            ),
             row=math.ceil((i + 1) / 2),
             col=1 if i % 2 == 0 else 2,
         )
 
-    fig2.update_layout(margin=dict(t=0, l=0, b=0, r=0), height=900)
+    fig2.update_layout(
+        margin=dict(t=0, l=0, b=0, r=0),
+        height=600,
+    )
 
     # fig2.update_layout(width=500, height=500)
     # fig2.show()
 
+    df3.rename(
+        columns={"date_stop": "Дата", "shift": "Cмена", "letter": "Буква"}, inplace=True
+    )
+
     html = (
-        df3.style.format({"LL-01": "{:,}"})
-        .highlight_max(subset=line_list)
+        df3.style.format({line: "{:,}" for line in line_list})
+        .apply(_line_green, subset=line_list)
+        .apply(_line_red, subset=line_list)
+        .apply(_line_max, subset=line_list)
+        .set_properties(**{"text-align": "right"}, subset=line_list)
+        .set_properties(
+            **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0"}
+        )
         .hide_index()
         .render()
     )
+
+    """
+    color = {"A": "#fff9eb", "B": "#ffedeb", "C": "#ebfff0", "D": "#eeebff"}
+
+            .apply(
+            lambda x: [
+                "background-color: {}".format(color[x["letter"]])
+                if x["letter"] in color
+                else i
+                for i in x
+            ],
+            axis=1,
+        )
+    """
+    # html = html.replace(",", " ")
 
     plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
 

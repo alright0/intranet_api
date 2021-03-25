@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
     <title>{% block title %} {% endblock %}</title>
+    {% block javascript %}{% endblock %}
 </head>
 
 <body>
@@ -18,13 +19,15 @@
             </a>
         </div>
     </header>
-
+    {% block nav %}
     <div class="nav">
         <div class="topnav">
             <a href="/daily_camera_report">Ежедневный отчет камер</a>
             <a href="/now_camera_report">Текущее состояние камер</a>
+            <a href="/production_plan">План производства</a>
         </div>
     </div>
+    {% endblock %}
     <main>
 
         {% block content %}

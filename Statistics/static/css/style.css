@@ -196,24 +196,39 @@ footer p{
 /* классы production_plan.html */
 
 .production_plan{
+    margin:0 auto;
     display:flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-evenly;
+    justify-content: center;
+
 }
 
 .production_plan_graphs{
-    background: blanchedalmond;
-    width:50%;
+    background: rgb(255, 250, 243);
+    width:60%;
+    border-radius: 5px;
+
 }
 
 .production_plan_table{
     background: #f2f2f2;
-    width:50%;
+    width:35%;
+    border-radius: 5px;
+    display:flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-evenly;
+    justify-content: space-around;
 }
 
 .production_plan_table tr{
 
-    font-size: 9pt;
+    font-size: 7pt;
 
 }
+
 
 /* конец классов production_plan.html*/
 

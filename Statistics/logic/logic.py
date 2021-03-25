@@ -195,6 +195,7 @@ def camera_json_deserialize(json_response):
 def makedate(dt):
     """Эта функция принимает значение даты в строки в формате (%Y-%m-%d = YYYY-MM-DD)
     и возвращает 2 кортежа datetime входящей даты и + 1 сутки"""
+
     try:
         dt = datetime.strptime(dt[:10], "%Y-%m-%d")
 

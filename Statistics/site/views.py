@@ -16,7 +16,13 @@ from Statistics.logic.logic import *
 site = Blueprint("site", __name__)
 
 
-@site.route("/pp", methods=["GET"])
+@site.route("/daily/<line>", methods=["GET", "POST"])
+def daily_report(line):
+
+    return render_template("daily_report")
+
+
+@site.route("/production_plan", methods=["GET"])
 def production_plan():
 
     df = get_month_table()
