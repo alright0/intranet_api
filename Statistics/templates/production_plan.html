@@ -16,12 +16,44 @@
         {% block nav %}{% endblock %}
         {% block content %}
         <div class="production_plan">
-            <div class="production_plan_graphs" id='main_graph'>
+            <div class="production_plan_graphs">
+                <div id='main_graph'>
+                    <script>
+                        (function () {
+                            var d3 = Plotly.d3;
 
-                <script>
-                    var graph = {{ plot | safe }};
-                    Plotly.plot('main_graph', graph, {});
-                </script>
+                            /* ширина и высота в процентах*/
+                            var WIDTH = 98,
+                                HEIGHT = 90;
+
+                            /* ширина и высота родительского элемента*/
+                            var gd3 = d3.select('#main_graph')
+                                .style({
+                                    width: WIDTH + '%',
+                                    height: HEIGHT + 'vh',
+                                });
+
+                            var gd = gd3.node();
+
+                            /*встраивание переменной jinja2*/
+                            var graph_json = {{ plot | safe
+                        }};
+
+                        /*здесь создается график*/
+                        graph = Plotly.plot('main_graph', graph_json, {},);
+
+                        /* событие изменения ширины*/
+                        window.onresize = function (event) {
+                            gd3.style({
+                                width: WIDTH + '%',
+                                height: HEIGHT + 'vh',
+                            });
+                            gd = gd3.node()
+                            Plotly.Plots.resize(gd);;
+                        };
+                        }) ();
+                    </script>
+                </div>
             </div>
             <div class="production_plan_table">{{table|safe}}</div>
         </div>

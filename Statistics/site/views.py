@@ -25,7 +25,7 @@ def daily_report(line):
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
 
-    df = get_month_table()
+    df = up_puco_table().get_month_table()
 
     return render_template("production_plan.html", table=df[0], plot=df[1])
 

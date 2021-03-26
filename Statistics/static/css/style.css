@@ -209,6 +209,12 @@ footer p{
     background: rgb(255, 250, 243);
     width:60%;
     border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    padding: 10px;
+    /*align-content: space-evenly;*/
+    justify-content: center;
 
 }
 
