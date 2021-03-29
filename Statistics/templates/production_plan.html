@@ -24,7 +24,7 @@
 
                             /* ширина и высота в процентах*/
                             var WIDTH = 98,
-                                HEIGHT = 90;
+                                HEIGHT = 50;
 
                             /* ширина и высота родительского элемента*/
                             var gd3 = d3.select('#main_graph')
@@ -53,6 +53,9 @@
                         };
                         }) ();
                     </script>
+                    <div class="production_plan_table_av">
+                        {{table_average|safe}}
+                    </div>
                 </div>
             </div>
             <div class="production_plan_table">{{table|safe}}</div>

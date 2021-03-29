@@ -229,6 +229,10 @@ footer p{
     justify-content: space-around;
 }
 
+.production_plan_table_av{
+    font-size: 7pt;
+}
+
 .production_plan_table tr{
 
     font-size: 7pt;

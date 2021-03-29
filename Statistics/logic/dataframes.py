@@ -1,7 +1,8 @@
+# TODO: удалить лишние импорты
 import calendar
 import json
-from datetime import date, datetime, timedelta
 import math
+from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -11,21 +12,27 @@ from dateutil.relativedelta import relativedelta
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
-
 from sqlalchemy import cast, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-
 
 from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 
-# import plotly.express as px
-class up_puco_table:
 
-    """Класс возвращает представления таблицы up_puco_export по датам"""
+# TODO: разделись методы на таблицы и графики
+class up_puco_table:
+    """Класс возвращает представления таблицы up_puco_export по датам и линиям.\n
+    входные параметры:\n
+    ``date`` - datetime - дата, за которую необходимо получить отчет. \n
+        По умолчанию идет предыщуший день или текущий месяц\n
+    ``period`` - str - ``'month'``, ``'day'`` - день или месяц. По умолчанию ``"month"``\n
+    ``delta` - int - количество дней/месяцев от указанной даты. По умолчанию 1\n
+    ``lines`` - list - список линий, которые необходимо отобразить.\n
+        По умолчанию все линии\n
+    """
 
     def __init__(
         self,
@@ -39,8 +46,22 @@ class up_puco_table:
         self.delta = delta
         self.lines = lines
 
-    def parsedata(self):
-        """ """
+    def __parsedata(self):
+        """Приватная функция, реализующая парсинг даты для последующего формирования запоса\n
+        Возвращает словарь значений дат, для передачи в функции формирования запроса(SQL)\n
+        и итоговой выборки(Pandas).\n
+        Возвращает словарь значений:\n
+        ``"date_start"``: ``dt_start`` - datetime - если период равен месяцу, датой старта будет считаться\n
+            первое число месяца указаное во входящей дате(self.date), если день, то возвращается\n
+            дата без изменений.\n
+        ``"date_end"``: ``dt_end``, - datetime - если период равен месяцу, то датой конца будет первое число\n
+            следующего месяца. Если self.delta > 1, то прибавляется количество месяцев\n
+        ``"date_start_sql"``: ``date_start_sql`` - str - преобразует dt_start из вида "25-02-2021" в "20210225"\n
+        ``"date_end_sql"``: ``date_end_sql`` - str - dt_end + 1 день. Такое дополнение необходимо из-за того, что\n
+            ночная смена заканчивается в 8:00 следующего дня, но выборка времени(dt_start, dt_end) должна содежрать\n
+            только актуальные даты, отсекая лишние значения. Возвращает дату в формате "20210225"
+        """
+
         dt_start = datetime(
             self.date.year,
             self.date.month,
@@ -49,25 +70,24 @@ class up_puco_table:
 
         if self.period == "month":
 
-            print(dt_start.month)
-            dt_end = datetime(
-                dt_start.year,
-                dt_start.month + self.delta if self.delta > 1 else 0,
-                1,
+            dt_end = (
+                datetime(
+                    dt_start.year,
+                    dt_start.month,
+                    1,
+                )
+                + relativedelta(months=self.delta - 1)
             )
+
             dt_end = datetime(
                 dt_end.year,
                 dt_end.month,
                 calendar.monthrange(dt_end.year, dt_end.month)[1],
             )
 
-        # elif self.period == "month" and self.delta >= 1:
-
-        #    dt_end = dt_start + relativedelta(months=self.delta)
-
         elif self.period == "day":
 
-            dt_end = dt_start + relativedelta(days=0 if self.delta <= 1 else self.delta)
+            dt_end = dt_start + relativedelta(days=self.delta - 1)
 
         # превращение даты из формата 2021-03-01 00:00:00 в 20210301
         date_start_sql = f"{str(dt_start)[:4]}{str(dt_start)[5:7]}{str(dt_start)[8:10]}"
@@ -84,7 +104,7 @@ class up_puco_table:
             "date_end_sql": date_end_sql,
         }
 
-    def get_df_lvl_0(self, line):
+    def __get_df_lvl_0(self, line):
         """Принимает запрос из ``up_puco_export`` на ``EN-DB05`` и
         возвращает обработанный DataFrame готовый к\n
         дальнейшей обработке, построению таблиц и графиков\n
@@ -95,15 +115,13 @@ class up_puco_table:
         2     LZ-01  10117            682        52672      2     OGE04       0 2021-03-01 00:22:47   STOP 0 days 00:01:07
         3     LZ-01  10117            682        53050      2       RUN     378 2021-03-01 00:22:53    RUN 0 days 00:00:06
         """
-        dates = self.parsedata()
+        dates = self.__parsedata()
 
         df_lvl_0 = pd.DataFrame(
             up_puco_export.get_production_info(
                 dates["date_start_sql"], dates["date_end_sql"], line
             )
         )
-
-        # df_lvl_0.to_csv(r"\\en-fs01\en-public\STP\Display\API\site\1.csv", sep=";")
 
         if not df_lvl_0.empty:
 
@@ -226,6 +244,11 @@ class up_puco_table:
 
             # переразметка дат под соответствие сменам. Если смена переходит из одного
             # дня в другой, то дату необходимо сместить на 8 часов, иначе ничего не менять
+            df_lvl_1["shift"] = df_lvl_1[["shift", "date_stop"]].apply(
+                lambda x: 1 if x[1].hour >= 8 and x[1].hour < 20 else 2,
+                axis=1,
+            )
+
             df_lvl_1["date"] = (
                 df_lvl_1[["date_stop", "shift"]]
                 .apply(
@@ -238,57 +261,75 @@ class up_puco_table:
                 .str[:10]
             )
 
-            # print(df_lvl_1)
-
             return df_lvl_1
         else:
 
             return pd.DataFrame([])
 
-    def month_range(self, dt_start, dt_end):
-        """Функция принимает номер месяца в числовом формате от 1 до 12 и возвращает\n
-        сформированный DataFrame c с датой, сменой и буквой смены для смерживания с\n
-        выпуском\n
-        Возвращаемый результат имеет следующий вид:
+    def __month_range(self, dt_start, dt_end):
+        """Приватная функция принимает даты ``date_start`` и ``date_end`` из ``__parsedata``\n
+        и возвращает DataFrame следующего вида:
                 date_stop  shift letter
         0   2021-03-01      1      A
         1   2021-03-01      2      D
         2   2021-03-02      1      A
+        Из-за особенностей производства, переходя через новый год, порядок смен может измениться\n
+        Эта проблема решается, если задать переменные всего года(или периодов), в отдельные переменные\n
+        и выполнять конкатенацию в порядке возрастания даты, не допуская наложения. \n
+        Для добавления новой даты необхоидмо сформировать 3 переменных:\n
+        ``datelist_##`` - df - список дат, дублирующихся дважды(для первой и второй смен)\n
+        ``shiftlist_##`` - list - список смен содержит попеременно повторяющиеся 1 и 2 смены\n
+        ``LETTER_##`` - str - список букв смен. Должен содержать паттерн перестановки смен:\n
+            (прим.: "DADACDCDBCBCABAB")
         """
 
-        # текущие год, месяц и последний день текущего месяца
-        """y = dt_start.year
-        m = dt_start.month
-        last_d = calendar.monthrange(y, m)[1]"""
-
         # здесь формируется список дат в формате (03.03.2021 ...) для текущего месяца
-        # продублированный дважды для каждой смены
         month_range = pd.date_range(start=dt_start, end=dt_end).astype(str).str[:10]
-
         month_range = [day for day in month_range for _ in (0, 1)]
+
+        # список смен для df с актуальными датами
         shift_list = [1 if shift % 2 == 0 else 2 for shift in range(len(month_range))]
 
-        # Константное значение порядка смен.
-        LETTER = "CBCBDCDCADADBABA" * 94
+        """Этот список переменных можно брать и использовать для прочих периодов, если порядок смен
+        будет отличаться"""
+        # 2020 год
+        datelist_20 = pd.date_range(start=date(2020, 1, 1), end=date(2020, 12, 31))
+        datelist_20 = [str(day)[:10] for day in datelist_20 for _ in (0, 1)]
 
-        # большой список дат и букв для последующего маппинга
-        datelist = pd.date_range(start=date(2021, 2, 1), end=date(2022, 1, 1))
-        datelist = [str(day)[:10] for day in datelist for _ in (0, 1)]
-        shiftlist = [1 if shift % 2 == 0 else 2 for shift in range(len(datelist))]
+        shiftlist_20 = [1 if shift % 2 == 0 else 2 for shift in range(len(datelist_20))]
 
-        # все даты
-        full_date_df = pd.DataFrame(
-            list(zip(datelist, shiftlist, LETTER)),
+        LETTER_20 = "DADACDCDBCBCABAB" * 94
+
+        df_2020 = pd.DataFrame(
+            list(zip(datelist_20, shiftlist_20, LETTER_20)),
             columns=["date_stop", "shift", "letter"],
         )
+
+        """Этот список переменных можно брать и использовать для прочих периодов, если порядок смен
+        будет отличаться"""
+        # 2021 год
+        datelist_21 = pd.date_range(start=date(2021, 1, 1), end=date(2022, 1, 1))
+        datelist_21 = [str(day)[:10] for day in datelist_21 for _ in (0, 1)]
+
+        LETTER_21 = "CBDCDCADADBABACB" * 94
+
+        shiftlist_21 = [1 if shift % 2 == 0 else 2 for shift in range(len(datelist_21))]
+
+        df_2021 = pd.DataFrame(
+            list(zip(datelist_21, shiftlist_21, LETTER_21)),
+            columns=["date_stop", "shift", "letter"],
+        )
+
+        # Сюда добавляются все периоды смен, в хронологическом порядке
+        full_date_df = pd.concat([df_2020, df_2021])
 
         # этот месяц
         this_month_df = pd.DataFrame(
             list(zip(month_range, shift_list)), columns=["date_stop", "shift"]
         )
 
-        # размеченные даты
-        letter_df = pd.merge(
+        # смерживание выбранного актуального периода с паттернами смен
+        df = pd.merge(
             this_month_df,
             full_date_df,
             how="inner",
@@ -296,9 +337,10 @@ class up_puco_table:
             right_on=["date_stop", "shift"],
         )
 
-        return letter_df
+        return df
 
-    def _line_green(self, val):
+    # NOTE: функция оформления таблицы
+    def __line_green(self, val):
         """Окрашивает выпуск линий больше 100% в зеленый"""
 
         return [
@@ -306,7 +348,8 @@ class up_puco_table:
             for v in val
         ]
 
-    def _line_red(self, val):
+    # NOTE: функция оформления таблицы
+    def __line_red(self, val):
         """Окрашивает выпуск линий меньше 25% в красный"""
 
         return [
@@ -316,8 +359,9 @@ class up_puco_table:
             for v in val
         ]
 
-    def _line_max(self, val):
-        """Выделяет 1 смену с максимальным выпуском"""
+    # NOTE: функция оформления таблицы
+    def __line_max(self, val):
+        """Выделяет смену с максимальным выпуском"""
 
         # Сначала создается массив значений, совпадающих с максимальным,
         # затем выделяются ненулевые значения, чтобы линии в начале месяца
@@ -331,18 +375,21 @@ class up_puco_table:
             "background-color: yellow; font-weight:bold" if v else "" for v in real_max
         ]
 
+    # TODO: добавить docstring
     def get_month_table(self):
 
         # переопределение даты для запроса в df_lvl_0
-        dates = self.parsedata()
+        dates = self.__parsedata()
 
         # получение df размеченных дней смерживания с датами выпуска
-        date_df = self.month_range(dates["date_start"], dates["date_end"])
+        date_df = self.__month_range(dates["date_start"], dates["date_end"])
 
         df_list, line_list = [], []
 
-        for line in self.lines:
-            df = self.get_df_lvl_0(line)
+        # создание таблицы с указанными линими
+        for line in ["LL-01", "LL-02", "LZ-01"]:  # self.lines:
+
+            df = self.__get_df_lvl_0(line)
 
             if not df.empty:
 
@@ -356,6 +403,7 @@ class up_puco_table:
 
                 line_list.append(line)
 
+        # превращение подробной таблицы в таблицу с суммарным выпуском по датам
         df2 = pd.pivot_table(
             df2,
             index=[df2["date"], "shift"],
@@ -365,6 +413,7 @@ class up_puco_table:
 
         df2["date"] = df2["date"].astype(str)
 
+        # добавление букв смены
         df3 = pd.merge(
             date_df,
             df2,
@@ -374,8 +423,10 @@ class up_puco_table:
         )
 
         df3.fillna(0, inplace=True)
+
         del df3["date"]
 
+        # Преобразование показателей выпуска линий в int из float
         for line in line_list:
             df3[line] = df3[line].astype(int)
 
@@ -384,15 +435,22 @@ class up_puco_table:
             lambda x: datetime.strftime(datetime.strptime(x, "%Y-%m-%d"), "%d.%m.%Y")
         )
 
-        # fig = go.Figure(data=go.Bar(x=(df3["date_stop"], df3["shift"]), y=df3["LL-02"]))
+        return df3
 
-        # fig.show()
+    def subplots(self, df2):
+
+        df3 = df2.copy()
+
+        line_list = list(df3.columns.values)[3:]
+
+        df3 = df3.sort_index().sort_values("letter", kind="mergesort")
 
         fig2 = make_subplots(
-            rows=math.ceil(len(self.lines) / 2),
-            cols=2 if len(self.lines) > 1 else 1,
+            rows=math.ceil(len(self.lines) / 5),
+            cols=math.ceil(len(self.lines) / 2) if len(self.lines) > 0 else 1,
             start_cell="bottom-left",
             subplot_titles=line_list,
+            vertical_spacing=0.1,
             x_title="Смена",
             y_title="Выпуск",
         )
@@ -413,8 +471,8 @@ class up_puco_table:
                     + "<br>Выпуск: "
                     + df3[line_list[i]].astype(str),
                 ),
-                row=math.ceil((i + 1) / 2),
-                col=1 if i % 2 == 0 else 2,
+                row=math.ceil((i + 1) / 5),
+                col=math.ceil(i - 5 * (i // 5) + 1),
             )
 
         fig2.update_layout(
@@ -427,19 +485,84 @@ class up_puco_table:
             },
         )
 
-        # fig2.update_layout(width=500, height=500)
-        # fig2.show()
+        plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
+
+        return plot_json
+
+    def date_table_average(self, df2):
+
+        df3 = df2.copy()
+
+        line_list = list(df3.columns.values)[3:]
+
+        for line in line_list:
+
+            df3[line + " shift"] = df3[line].apply(
+                lambda x: 1 if x > LINE_OUTPUT[line] / 4 else 0
+            )
+
+        pivot_dict = dict()
+        pivot_dict.update({line: "sum" for line in line_list})
+        pivot_dict.update({line + " shift": "sum" for line in line_list})
+
+        df3 = pd.pivot_table(
+            df3, index=[df3["letter"]], values=pivot_dict, aggfunc=pivot_dict
+        ).reset_index()
+
+        line_list_av = []
+
+        for line in line_list:
+
+            df3[line + " average"] = df3[line] / df3[line + " shift"]
+
+            df3.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+            df3[line + " average"].fillna(0, inplace=True)
+
+            # print(df3)
+
+            df3[line + " average"] = df3[line + " average"].astype(int)
+
+            line_list_av.append(line + " average")
+
+        df3 = df3.reindex(sorted(df3.columns, reverse=True), axis=1)
+
+        html = (
+            df3.style.format({line: "{:,}" for line in line_list})
+            .format({line + " average": "{:,}" for line in line_list})
+            .apply(self.__line_max, subset=line_list_av)
+            .set_properties(
+                **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
+                subset=[*line_list, *line_list_av],
+            )
+            .set_properties(
+                **{
+                    "padding": "0 5px 0 5px",
+                    "border-bottom": "1px solid #e0e0e0",
+                }
+            )
+            .hide_index()
+            .render()
+        )
+
+        return html
+
+    def date_table(self, df2):
+
+        df3 = df2.copy()
 
         df3.rename(
             columns={"date_stop": "Дата", "shift": "Cмена", "letter": "Буква"},
             inplace=True,
         )
 
+        line_list = list(df3.columns.values)[3:]
+
         html = (
             df3.style.format({line: "{:,}" for line in line_list})
-            .apply(self._line_green, subset=line_list)
-            .apply(self._line_red, subset=line_list)
-            .apply(self._line_max, subset=line_list)
+            .apply(self.__line_green, subset=line_list)
+            .apply(self.__line_red, subset=line_list)
+            .apply(self.__line_max, subset=line_list)
             .set_properties(**{"text-align": "right"}, subset=line_list)
             .set_properties(
                 **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0"}
@@ -448,34 +571,12 @@ class up_puco_table:
             .render()
         )
 
-        """
-        color = {"A": "#fff9eb", "B": "#ffedeb", "C": "#ebfff0", "D": "#eeebff"}
-
-                .apply(
-                lambda x: [
-                    "background-color: {}".format(color[x["letter"]])
-                    if x["letter"] in color
-                    else i
-                    for i in x
-                ],
-                axis=1,
-            )
-        """
-        # html = html.replace(",", " ")
-
-        plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
-
-        # print(plot_json)
-
-        return html, plot_json
-
-        def get_month_by_let():
-            pass
+        return html
 
 
 if __name__ == "__main__":
 
     rep = up_puco_table()
 
-    print(rep.parsedata())
+    print(rep.__parsedata())
     print(rep.get_month_table())

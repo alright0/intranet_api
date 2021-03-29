@@ -27,7 +27,13 @@ def production_plan():
 
     df = up_puco_table().get_month_table()
 
-    return render_template("production_plan.html", table=df[0], plot=df[1])
+    plot = up_puco_table().subplots(df)
+    table = up_puco_table().date_table(df)
+    table_average = up_puco_table().date_table_average(df)
+
+    return render_template(
+        "production_plan.html", table=table, plot=plot, table_average=table_average
+    )
 
 
 # домашняя страница

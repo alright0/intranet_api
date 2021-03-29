@@ -73,7 +73,7 @@ class up_puco_export(Base_fc):
     not_used_5 = db.Column("a15", db.String)
     counter_start = db.Column("a16", db.String)
     counter_end = db.Column("a17", db.String)
-    not_used_6 = db.Column("a18", db.String)
+    not_used_6 = db.Column("indpuco", db.String)
 
     @classmethod
     def get_production_info(self, dt, dt2, line):
@@ -94,6 +94,8 @@ class up_puco_export(Base_fc):
             & (cast(self.start_date, db.Integer) <= dt2)
             & (cast(self.shift, db.Integer) > 0)
             & (self.puco_code != "00000000")
+            & (self.start_time != "00000000")
+            & (self.end_time != "00000000")
             & (self.line == line)
         )
 
