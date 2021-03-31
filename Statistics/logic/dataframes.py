@@ -34,6 +34,7 @@ class up_puco_table:
         По умолчанию все линии\n
     """
 
+    # NOTE: Конструктор класса
     def __init__(
         self,
         date=datetime.today() - timedelta(days=1),
@@ -46,6 +47,7 @@ class up_puco_table:
         self.delta = delta
         self.lines = lines
 
+    # NOTE: парсинг периодов входящей даты
     def __parsedata(self):
         """Приватная функция, реализующая парсинг даты для последующего формирования запоса\n
         Возвращает словарь значений дат, для передачи в функции формирования запроса(SQL)\n
@@ -104,6 +106,7 @@ class up_puco_table:
             "date_end_sql": date_end_sql,
         }
 
+    # NOTE: на основе этого фрейма строятся все остальные
     def __get_df_lvl_0(self, line):
         """Принимает запрос из ``up_puco_export`` на ``EN-DB05`` и
         возвращает обработанный DataFrame готовый к\n
@@ -266,6 +269,7 @@ class up_puco_table:
 
             return pd.DataFrame([])
 
+    # NOTE: эта функция размечает даты буквами смен
     def __month_range(self, dt_start, dt_end):
         """Приватная функция принимает даты ``date_start`` и ``date_end`` из ``__parsedata``\n
         и возвращает DataFrame следующего вида:
@@ -372,11 +376,23 @@ class up_puco_table:
         real_max = is_max & is_null
 
         return [
-            "background-color: yellow; font-weight:bold" if v else "" for v in real_max
+            "background-color: yellow; font-weight:bold; color: blue;" if v else ""
+            for v in real_max
         ]
 
-    # TODO: добавить docstring
     def get_month_table(self):
+        """Возвращает DataFrame с датами, номерами и буквами смен. На основе этого фрема\n
+        формируются все остальные таблицы и графики.
+
+        Пример возвращаемого фрейма:\n
+             date_stop  shift letter  LL-01  LL-02   LN-01  LN-03  LP-01   LZ-01  LZ-02   LZ-03   LZ-04
+        0   01.03.2021      1      A      0  44872  418170      0  14952  170351      0  460491       0
+        1   01.03.2021      2      D      0   3767  419534      0      0  240088      0  470987  472896
+        2   02.03.2021      1      A      0      0  241987      0  14939  197841      0  151382  193350
+
+
+
+        """
 
         # переопределение даты для запроса в df_lvl_0
         dates = self.__parsedata()
@@ -387,7 +403,7 @@ class up_puco_table:
         df_list, line_list = [], []
 
         # создание таблицы с указанными линими
-        for line in ["LL-01", "LL-02", "LZ-01"]:  # self.lines:
+        for line in self.lines:
 
             df = self.__get_df_lvl_0(line)
 
@@ -403,39 +419,64 @@ class up_puco_table:
 
                 line_list.append(line)
 
-        # превращение подробной таблицы в таблицу с суммарным выпуском по датам
-        df2 = pd.pivot_table(
-            df2,
-            index=[df2["date"], "shift"],
-            values=line_list,
-            aggfunc="sum",
-        ).reset_index()
+            else:
+                df2 = pd.DataFrame(
+                    [],
+                    columns=[
+                        "line",
+                        "order",
+                        "counter_start",
+                        "counter_end",
+                        "shift",
+                        "puco_code",
+                        "date_stop",
+                        "minutes",
+                        "status",
+                        "date",
+                        "sheets",
+                    ],
+                )
 
-        df2["date"] = df2["date"].astype(str)
+        if not df2.empty:
+            # превращение подробной таблицы в таблицу с суммарным выпуском по датам
+            df2 = pd.pivot_table(
+                df2,
+                index=[df2["date"], "shift"],
+                values=line_list,
+                aggfunc="sum",
+            ).reset_index()
 
-        # добавление букв смены
-        df3 = pd.merge(
-            date_df,
-            df2,
-            how="left",
-            left_on=["date_stop", "shift"],
-            right_on=["date", "shift"],
-        )
+            df2["date"] = df2["date"].astype(str)
 
-        df3.fillna(0, inplace=True)
+            # добавление букв смены
+            df3 = pd.merge(
+                date_df,
+                df2,
+                how="left",
+                left_on=["date_stop", "shift"],
+                right_on=["date", "shift"],
+            )
 
-        del df3["date"]
+            df3.fillna(0, inplace=True)
 
-        # Преобразование показателей выпуска линий в int из float
-        for line in line_list:
-            df3[line] = df3[line].astype(int)
+            del df3["date"]
 
-        # даты из формата 2021/01/02 в 02.01.2021
-        df3["date_stop"] = df3["date_stop"].apply(
-            lambda x: datetime.strftime(datetime.strptime(x, "%Y-%m-%d"), "%d.%m.%Y")
-        )
+            # Преобразование показателей выпуска линий в int из float
+            for line in line_list:
+                df3[line] = df3[line].astype(int)
 
-        return df3
+            # даты из формата 2021/01/02 в 02.01.2021
+            df3["date_stop"] = df3["date_stop"].apply(
+                lambda x: datetime.strftime(
+                    datetime.strptime(x, "%Y-%m-%d"), "%d.%m.%Y"
+                )
+            )
+
+            return df3
+
+        else:
+
+            return date_df
 
     def subplots(self, df2):
 
@@ -445,24 +486,41 @@ class up_puco_table:
 
         df3 = df3.sort_index().sort_values("letter", kind="mergesort")
 
+        if len(line_list) >= 5:
+            cols = 5
+        elif len(line_list) == 0:
+            cols = 1
+        else:
+            cols = len(line_list)
+
         fig2 = make_subplots(
-            rows=math.ceil(len(self.lines) / 5),
-            cols=math.ceil(len(self.lines) / 2) if len(self.lines) > 0 else 1,
+            cols=cols,
+            rows=math.ceil(math.ceil(len(line_list) / 5)) if len(line_list) > 0 else 1,
             start_cell="bottom-left",
             subplot_titles=line_list,
-            vertical_spacing=0.1,
+            vertical_spacing=0.15,
             x_title="Смена",
             y_title="Выпуск",
         )
 
         for i in range(len(line_list)):
 
+            color_list = []
+
+            color_list = df3[line_list[i]].apply(
+                lambda x: "green"
+                if x > LINE_OUTPUT[line_list[i]]
+                else "firebrick"
+                if x < LINE_OUTPUT[line_list[i]] / 25
+                else "#003882"
+            )
+
             fig2.add_trace(
                 go.Bar(
                     x=df3["letter"],
                     y=df3[line_list[i]],
                     name=line_list[i],
-                    marker={"color": "#003882"},
+                    marker_color=color_list,
                     hoverinfo="text",
                     hovertext="Дата: "
                     + df3["date_stop"].astype(str)
@@ -476,9 +534,11 @@ class up_puco_table:
             )
 
         fig2.update_layout(
-            margin=dict(t=50, l=70, b=70, r=30),
-            autosize=True,
+            margin=dict(t=70, l=70, b=70, r=30),
             title_text="<b>Выпуск линий по сменам</b>",
+            title_font_size=16,
+            title_x=0.5,
+            title_y=0.98,
             showlegend=False,
             font={
                 "size": 10,
@@ -521,31 +581,82 @@ class up_puco_table:
 
             # print(df3)
 
-            df3[line + " average"] = df3[line + " average"].astype(int)
+            # df3[line + " average"] = df3[line + " average"].astype(int)
 
             line_list_av.append(line + " average")
 
         df3 = df3.reindex(sorted(df3.columns, reverse=True), axis=1)
 
-        html = (
-            df3.style.format({line: "{:,}" for line in line_list})
-            .format({line + " average": "{:,}" for line in line_list})
-            .apply(self.__line_max, subset=line_list_av)
-            .set_properties(
-                **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
-                subset=[*line_list, *line_list_av],
+        df_list = []
+        line_dict = dict()
+
+        for line in line_list:
+
+            df4 = df3[["letter", f"{line} shift", f"{line} average", line]]
+
+            df4 = df4.append(
+                pd.DataFrame(
+                    [
+                        [
+                            "ИТОГО",
+                            df4[f"{line} shift"].sum(),
+                            df4[f"{line} average"].mean(),
+                            df4[line].sum(),
+                        ]
+                    ],
+                    columns=list(df4.columns.values),
+                ),
+                ignore_index=True,
             )
-            .set_properties(
-                **{
-                    "padding": "0 5px 0 5px",
-                    "border-bottom": "1px solid #e0e0e0",
+
+            df4[line + " average"] = df4[line + " average"].astype(int)
+
+            # df4.iloc[-1] = ["ИТОГО", df4[f"{line} shift"].sum(), "-", df4[line].sum()]
+
+            df4 = df4.rename(
+                columns={
+                    "letter": "Буква",
+                    f"{line} shift": "Смена",
+                    f"{line} average": "Средний",
+                    line: "Абс.",
                 }
             )
-            .hide_index()
-            .render()
-        )
 
-        return html
+            # print(df4)
+            html = (
+                df4.style.format({"Абс.": "{:,}"})
+                .format({"Средний": "{:,}"})
+                .apply(
+                    self.__line_max, subset=pd.IndexSlice[df3.index[0:-1], ["Средний"]]
+                )
+                .set_properties(
+                    **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
+                    subset="Средний",
+                )
+                .set_properties(
+                    **{"text-align": "right"},
+                    subset="Абс.",
+                )
+                .set_properties(
+                    **{"font-weight": "600"}, subset=pd.IndexSlice[df4.index[-1]]
+                )
+                .set_properties(
+                    **{"text-align": "center"},
+                    subset=["Смена", "Буква"],
+                )
+                .set_properties(
+                    **{
+                        "padding": "0 5px 0 5px",
+                        "border-bottom": "1px solid #e0e0e0",
+                    }
+                )
+                .hide_index()
+                .render()
+            )
+
+            line_dict[line] = html
+
+        return line_dict
 
     def date_table(self, df2):
 
@@ -558,18 +669,41 @@ class up_puco_table:
 
         line_list = list(df3.columns.values)[3:]
 
+        df3 = df3.append(
+            pd.DataFrame(
+                [
+                    [
+                        "",
+                        "",
+                        "ИТОГО",
+                        *[df3[tot].sum() for tot in line_list],
+                    ]
+                ],
+                columns=list(df3.columns.values),
+            ),
+            ignore_index=True,
+        )
+
+        # df3.iloc[-1] = ["", "", "ИТОГО:", *[df3[tot].sum() for tot in line_list]]
+
         html = (
             df3.style.format({line: "{:,}" for line in line_list})
-            .apply(self.__line_green, subset=line_list)
-            .apply(self.__line_red, subset=line_list)
-            .apply(self.__line_max, subset=line_list)
+            .apply(self.__line_green, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .apply(self.__line_red, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .apply(self.__line_max, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .bar(subset=pd.IndexSlice[df3.index[0:-1], line_list], color="#d4d4d4")
             .set_properties(**{"text-align": "right"}, subset=line_list)
             .set_properties(
                 **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0"}
             )
+            .set_properties(
+                **{"font-weight": "600"}, subset=pd.IndexSlice[df3.index[-1]]
+            )
             .hide_index()
             .render()
         )
+
+        html = html
 
         return html
 

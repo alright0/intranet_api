@@ -3,6 +3,21 @@
     padding: 0;
 }
 
+:root {
+    --silgan_blue: #003882;
+    --silgan_gray: #70777d;
+    --light_gray: #e6e6e6;
+
+    --line_run: #fafff9;
+    --line_stop: #fafafa;
+    --line_puco:#fffff9;
+    --line_error: #fff9f9;
+
+    --line_run_hover: rgb(235, 255, 234);
+    --line_puco_hover:rgb(254, 255, 234);
+    --line_error_hover:rgb(255, 234, 234);
+  }
+
 a{
     text-decoration: none;
 }
@@ -18,7 +33,7 @@ body{
 
 
 .logo{
-    background: #003882;
+    background: var(--silgan_blue);
     width: 100%;
     display: flex;
     justify-content: flex-start;
@@ -31,11 +46,11 @@ body{
 .ln{
 
     width: 0.1px;
-    background: #d1d1d1;
+    background: var(--light_gray);
 
 }
 footer{
-    background: #70777d;
+    background: var(--silgan_gray);
     width: 100%;
     height: auto;
     left: 0;
@@ -68,12 +83,12 @@ footer p{
 }
 
 .topnav a{
-    color: #003882;
+    color: var(--silgan_blue);
     margin: 0 7px 7px;
 }
 
 .topnav a:hover{
-    border-bottom: 2px solid #003882;
+    border-bottom: 2px solid var(--silgan_blue);
 }
 
 .content{
@@ -98,7 +113,7 @@ footer p{
 
 
 .infoboard_block{
-    background: #fffff9; /* желтый */
+    background: var(--line_puco); /* желтый */
     border-radius: 5px;
     box-shadow: rgba(0,0,0,0.2) 0 2px 4px 1px;
     max-width: 190px;
@@ -107,31 +122,31 @@ footer p{
 
 /* Окрашивание линий в зависмости от статуса */
 .infoboard_block#RUN{
-    background: #fafff9; /* зеленый */
+    background: var(--line_run); /* зеленый */
 }
 
 .infoboard_block#STOP{
-    background: #fafafa; /* серый */
+    background: var(--line_stop); /* серый */
 }
 
 .infoboard_block#Line_not_found{
-    background: #fff9f9; /* красный */
+    background: var(--line_error); /* красный */
 }
 
 /* Белый цвет при наведении на разные id этого класса*/
 .infoboard_block#RUN:hover{
-    background: rgb(235, 255, 234); /* зеленый */
+    background: var(--line_run_hover); /* зеленый */
 }
 
 .infoboard_block#Line_not_found:hover{
-    background: rgb(255, 234, 234); /* красный */
+    background: var(--line_error_hover); /* красный */
 }
 .infoboard_block#STOP:hover{
     background: #FFF; /* серый */
 }
 
 .infoboard_block:hover{
-    background: rgb(254, 255, 234); /* желтый */
+    background: var(--line_puco_hover); /* желтый */
 }
 
 .infoboard_block_header{
@@ -149,7 +164,7 @@ footer p{
     text-align: center;
     font-weight: 400;
     font-size: 10px;
-    color: #70777d;
+    color: var(--silgan_gray);
 }
 
 .infoboard_block_pair{
@@ -165,7 +180,7 @@ footer p{
 .infoboard_block_pair p{
     text-align: center;
     font-weight: 400;
-    color: #70777d;
+    color: var(--silgan_gray);
 }
 
 .infoboard_block_footer{
@@ -183,7 +198,7 @@ footer p{
 .infoboard_block_footer p{
     text-align: center;
     font-weight: 400;
-    color: #70777d;
+    color: var(--silgan_gray);
 }
 
 .infoboard_block_small {
@@ -196,37 +211,82 @@ footer p{
 /* классы production_plan.html */
 
 .production_plan{
-    margin:0 auto;
-    display:flex;
-    flex-wrap: wrap;
+    margin:8px;
+    /*height: 88vh;*/
+    display:grid;
+    grid-template-columns: repeat(2, minmax(350px,1fr));
+    grid-gap: 7px;
+    grid-template-areas: "a b b";
+    /*flex-wrap: wrap;
     flex-direction: row;
-    align-content: space-evenly;
-    justify-content: center;
+    align-content: start;
+    justify-content: space-around;*/
+    padding: 10px 8px 0;
 
 }
 
+.production_plan_stdblock{
+    background: #FFF;
+    box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
+    border-radius: 8px;
+    /*border: #000 solid;*/
+    display:flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: start;
+    justify-content: center;
+    font-size: 7pt;
+    padding: 10px;
+}
+
+.production_plan_stdblock p{
+    font-size: 12pt;
+    font-weight: 800;
+    margin: 5px;
+}
+
+.production_plan_tbl{
+    display:grid;
+    grid-gap: 5px;
+    grid-template-columns: repeat(4,minmax(180px, 1fr));
+}
+
+
 .production_plan_graphs{
-    background: rgb(255, 250, 243);
-    width:60%;
+    background: var(--line_stop);
+    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
+    width:97%;
+    /*height:-webkit-fill-available;*/
+    padding: 10px;
+    grid-area: a;
     border-radius: 5px;
+    /*display: grid;
+    grid-gap: 7px;
+    grid-template-rows: repeat(3,auto);*/
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    padding: 10px;
-    /*align-content: space-evenly;*/
-    justify-content: center;
+    /*padding: 10px;*/
+    align-content: Start;
+    justify-content: left;
+    gap: 7px;
 
 }
 
 .production_plan_table{
-    background: #f2f2f2;
-    width:35%;
+    background: var(--line_stop);
+    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
+    /*box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;*/
+    /*width:40%;*/
+    /*height:-webkit-fill-available;*/
     border-radius: 5px;
-    display:flex;
+    grid-area: b;
+    padding: 10px;
+    /*display:flex;
     flex-wrap: wrap;
     flex-direction: row;
-    align-content: space-evenly;
-    justify-content: space-around;
+    align-content: start;
+    justify-content: space-around;*/
 }
 
 .production_plan_table_av{

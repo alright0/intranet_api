@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from Statistics.app import *
 from Statistics.config import *
 from Statistics.data.table import make_table
 from Statistics.models import Camera
@@ -27,12 +28,19 @@ def production_plan():
 
     df = up_puco_table().get_month_table()
 
+    """df = up_puco_table(
+        date=datetime(2021, 3, 1), period="day", delta=3, lines=["LL-01", "LL-02"]
+    ).get_month_table()"""
+
     plot = up_puco_table().subplots(df)
     table = up_puco_table().date_table(df)
     table_average = up_puco_table().date_table_average(df)
 
     return render_template(
-        "production_plan.html", table=table, plot=plot, table_average=table_average
+        "production_plan.html",
+        table=table,
+        plot=plot,
+        table_average=table_average,
     )
 
 

@@ -15,9 +15,13 @@
     <main>
         {% block nav %}{% endblock %}
         {% block content %}
+
+        <!--<meta http-equiv="refresh" content="10"> -->
+
+
         <div class="production_plan">
             <div class="production_plan_graphs">
-                <div id='main_graph'>
+                <div class="production_plan_stdblock" id='main_graph'>
                     <script>
                         (function () {
                             var d3 = Plotly.d3;
@@ -40,7 +44,7 @@
                         }};
 
                         /*здесь создается график*/
-                        graph = Plotly.plot('main_graph', graph_json, {},);
+                        graph = Plotly.plot('main_graph', graph_json, {}, { displayModeBar: false });
 
                         /* событие изменения ширины*/
                         window.onresize = function (event) {
@@ -53,13 +57,32 @@
                         };
                         }) ();
                     </script>
-                    <div class="production_plan_table_av">
-                        {{table_average|safe}}
+                </div>
+                <div class="production_plan_tbl">
+
+
+                    {% for tbl in table_average %}
+                    <div class="production_plan_stdblock">
+                        <p>{{tbl}}</p>
+                        <br>
+                        {{table_average[tbl]|safe}}
                     </div>
+                    {% endfor %}
+
                 </div>
             </div>
-            <div class="production_plan_table">{{table|safe}}</div>
+
+            <div class="production_plan_table">
+                <div class="production_plan_stdblock">
+                    <p>Выработка линий по сменам</p>
+                    <br>
+                    {{table|safe}}
+
+                </div>
+            </div>
+
         </div>
+
 
         {% endblock %}
     </main>
