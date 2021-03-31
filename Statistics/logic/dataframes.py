@@ -380,18 +380,15 @@ class up_puco_table:
             for v in real_max
         ]
 
+    # NOTE: Эта функция создает таблицу со списком дат и линий
     def get_month_table(self):
         """Возвращает DataFrame с датами, номерами и буквами смен. На основе этого фрема\n
-        формируются все остальные таблицы и графики.
-
-        Пример возвращаемого фрейма:\n
+        формируются все остальные таблицы и графики.\n
+        Пример возвращаемого фрейма(линии опциональны):\n
              date_stop  shift letter  LL-01  LL-02   LN-01  LN-03  LP-01   LZ-01  LZ-02   LZ-03   LZ-04
         0   01.03.2021      1      A      0  44872  418170      0  14952  170351      0  460491       0
         1   01.03.2021      2      D      0   3767  419534      0      0  240088      0  470987  472896
         2   02.03.2021      1      A      0      0  241987      0  14939  197841      0  151382  193350
-
-
-
         """
 
         # переопределение даты для запроса в df_lvl_0
@@ -402,42 +399,30 @@ class up_puco_table:
 
         df_list, line_list = [], []
 
+        # Фреймы здесь необходимо создать, на случай, если список линий будет пустым
+        # и они не будут добавлены в цикле
+        df, df2 = pd.DataFrame([]), pd.DataFrame([])
+
         # создание таблицы с указанными линими
         for line in self.lines:
 
+            """Поскольку начальный фрейм построен так, что каждое обращение в базу касается
+            только одной линии, то запросы, находящиеся в __get_df_lvl_0 должны выполняться в цикле"""
             df = self.__get_df_lvl_0(line)
 
             if not df.empty:
 
                 df[line] = df["sheets"]
-
                 del df["sheets"]
 
                 df_list.append(df)
-
                 df2 = pd.concat(df_list)
 
                 line_list.append(line)
 
-            else:
-                df2 = pd.DataFrame(
-                    [],
-                    columns=[
-                        "line",
-                        "order",
-                        "counter_start",
-                        "counter_end",
-                        "shift",
-                        "puco_code",
-                        "date_stop",
-                        "minutes",
-                        "status",
-                        "date",
-                        "sheets",
-                    ],
-                )
-
+        # если пришел пустой список линий, то назад вернется только список дат, смен и букв
         if not df2.empty:
+
             # превращение подробной таблицы в таблицу с суммарным выпуском по датам
             df2 = pd.pivot_table(
                 df2,
@@ -455,15 +440,12 @@ class up_puco_table:
                 how="left",
                 left_on=["date_stop", "shift"],
                 right_on=["date", "shift"],
-            )
-
-            df3.fillna(0, inplace=True)
+            ).fillna(0)
 
             del df3["date"]
 
             # Преобразование показателей выпуска линий в int из float
-            for line in line_list:
-                df3[line] = df3[line].astype(int)
+            df3[line_list] = df3[line_list].astype(int)
 
             # даты из формата 2021/01/02 в 02.01.2021
             df3["date_stop"] = df3["date_stop"].apply(
@@ -475,17 +457,39 @@ class up_puco_table:
             return df3
 
         else:
-
             return date_df
 
+    # NOTE: функция возвращает список линий, находящихся в экземпляре
+    def __get_line_list(self, df):
+        """Принимает фрейм из get_month_table и возвращает список линий, который в нем находится"""
+
+        line_list = []
+
+        for line in LINES:
+            if line in list(df.columns.values):
+                line_list.append(line)
+
+        line_list.sort()
+
+        return line_list
+
+    # NOTE: Строит bar график линий c подсветкой выработки
     def subplots(self, df2):
+        """Эту функцию можно вызвать, чтобы построить график линий за даты,
+        указанные в экземпляре классa. Функция принимает на вход фрейм экземпляра и
+        возвращает json для построения в plotly.js
+        """
 
         df3 = df2.copy()
 
-        line_list = list(df3.columns.values)[3:]
+        line_list = self.__get_line_list(df3)
+
+        print(line_list)
 
         df3 = df3.sort_index().sort_values("letter", kind="mergesort")
 
+        # расчет количества столбцов графиков, по умолчанию, если графиков больше 5, то
+        # перейти на следующую строку
         if len(line_list) >= 5:
             cols = 5
         elif len(line_list) == 0:
@@ -493,6 +497,7 @@ class up_puco_table:
         else:
             cols = len(line_list)
 
+        # создание тела графика.
         fig2 = make_subplots(
             cols=cols,
             rows=math.ceil(math.ceil(len(line_list) / 5)) if len(line_list) > 0 else 1,
@@ -503,10 +508,11 @@ class up_puco_table:
             y_title="Выпуск",
         )
 
+        # наполнение тела графиками.
         for i in range(len(line_list)):
 
+            # раскрашивание в зависимости от выработки
             color_list = []
-
             color_list = df3[line_list[i]].apply(
                 lambda x: "green"
                 if x > LINE_OUTPUT[line_list[i]]
@@ -533,6 +539,7 @@ class up_puco_table:
                 col=math.ceil(i - 5 * (i // 5) + 1),
             )
 
+        # дополнительное оформление
         fig2.update_layout(
             margin=dict(t=70, l=70, b=70, r=30),
             title_text="<b>Выпуск линий по сменам</b>",
@@ -545,25 +552,42 @@ class up_puco_table:
             },
         )
 
+        # преобразование графика в json и последующее его построение в plotly.js в templates
         plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
 
         return plot_json
 
+
     def date_table_average(self, df2):
+        """ Функция принимает фрейм из ``get_line_list`` и возвращает словарь, где ключ - название линии,
+        а значение - отрендеренный html, содержащий таблицу информацию по линии: буквы смены, 
+        количество смен, среднюю выработку и абсолютную выработку.
+        Имеет следующий вид:
+            Буква	Смена	Средний	      Абс.
+            A	    11	     39,945	   439,401
+            B	    12	     37,569	   450,829
+            C	    13	     35,426	   460,548
+            D	    11	     38,363	   422,003
+            ИТОГО	47	     37,826	 1,772,781 
+        """
 
         df3 = df2.copy()
 
-        line_list = list(df3.columns.values)[3:]
+        line_list = self.__get_line_list(df3)
 
+        # посчитать смену, если выпуск по ней больше 25% от нормы выработки
         for line in line_list:
-
             df3[line + " shift"] = df3[line].apply(
                 lambda x: 1 if x > LINE_OUTPUT[line] / 4 else 0
             )
 
+        # в этом блоке формируется список функций агрегации
         pivot_dict = dict()
         pivot_dict.update({line: "sum" for line in line_list})
-        pivot_dict.update({line + " shift": "sum" for line in line_list})
+        pivot_dict.update({f"{line} shift": "sum" for line in line_list})
+
+        #print(pivot_dict)
+
 
         df3 = pd.pivot_table(
             df3, index=[df3["letter"]], values=pivot_dict, aggfunc=pivot_dict
@@ -622,7 +646,7 @@ class up_puco_table:
                 }
             )
 
-            # print(df4)
+            
             html = (
                 df4.style.format({"Абс.": "{:,}"})
                 .format({"Средний": "{:,}"})
@@ -638,17 +662,18 @@ class up_puco_table:
                     subset="Абс.",
                 )
                 .set_properties(
-                    **{"font-weight": "600"}, subset=pd.IndexSlice[df4.index[-1]]
-                )
-                .set_properties(
-                    **{"text-align": "center"},
-                    subset=["Смена", "Буква"],
-                )
-                .set_properties(
                     **{
                         "padding": "0 5px 0 5px",
                         "border-bottom": "1px solid #e0e0e0",
                     }
+                )
+                .set_properties(
+                    **{"font-weight": "600", "border-bottom": "none"},
+                    subset=pd.IndexSlice[df4.index[-1]],
+                )
+                .set_properties(
+                    **{"text-align": "center"},
+                    subset=["Смена", "Буква"],
                 )
                 .hide_index()
                 .render()
@@ -658,7 +683,19 @@ class up_puco_table:
 
         return line_dict
 
+    # NOTE: таблица с деталицацией по датам и сменам. С итогами
     def date_table(self, df2):
+        """Эта функция принимает фрейм из ``get_month_table`` и возвращает таблицу\n
+        в виде отрендеренного html, который необходимо встроить в страницу\n 
+        сформированную по датам и сменам, с буквами смен и выпуском линий.\n
+        Имеет следующий вид:\n
+              Дата  Cмена	Буква	LL-01	LL-02	LN-01   ...	LN-03	
+        01.03.2021	    1	    A	    0  44,872 418,170   ...	    0	
+        01.03.2021	    2	    D	    0   3,767 419,534   ...	    0	
+        02.03.2021	    1	    A	    0	    0 241,987   ...	    0	
+        02.03.2021	    2	    D	    0	    0 377,041   ...	    0	 
+
+        """
 
         df3 = df2.copy()
 
@@ -667,8 +704,9 @@ class up_puco_table:
             inplace=True,
         )
 
-        line_list = list(df3.columns.values)[3:]
+        line_list = self.__get_line_list(df3)
 
+        # строка итогов
         df3 = df3.append(
             pd.DataFrame(
                 [
@@ -684,20 +722,20 @@ class up_puco_table:
             ignore_index=True,
         )
 
-        # df3.iloc[-1] = ["", "", "ИТОГО:", *[df3[tot].sum() for tot in line_list]]
-
+        # создание html и стилизация.
         html = (
             df3.style.format({line: "{:,}" for line in line_list})
             .apply(self.__line_green, subset=pd.IndexSlice[df3.index[0:-1], line_list])
             .apply(self.__line_red, subset=pd.IndexSlice[df3.index[0:-1], line_list])
             .apply(self.__line_max, subset=pd.IndexSlice[df3.index[0:-1], line_list])
             .bar(subset=pd.IndexSlice[df3.index[0:-1], line_list], color="#d4d4d4")
+            .set_properties(
+                **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0", "text-align":"center"}
+            )
             .set_properties(**{"text-align": "right"}, subset=line_list)
             .set_properties(
-                **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0"}
-            )
-            .set_properties(
-                **{"font-weight": "600"}, subset=pd.IndexSlice[df3.index[-1]]
+                **{"font-weight": "600", "border-bottom": "none"},
+                subset=pd.IndexSlice[df3.index[-1]],
             )
             .hide_index()
             .render()

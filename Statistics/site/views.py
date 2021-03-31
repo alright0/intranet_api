@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+
 from Statistics.app import *
 from Statistics.config import *
 from Statistics.data.table import make_table
@@ -26,21 +27,25 @@ def daily_report(line):
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
 
-    df = up_puco_table().get_month_table()
+    info = up_puco_table(datetime(2021, 4, 1), period="month")
+    df = info.get_month_table()
 
     """df = up_puco_table(
         date=datetime(2021, 3, 1), period="day", delta=3, lines=["LL-01", "LL-02"]
     ).get_month_table()"""
 
-    plot = up_puco_table().subplots(df)
-    table = up_puco_table().date_table(df)
-    table_average = up_puco_table().date_table_average(df)
+    plot = info.subplots(df)
+    table = info.date_table(df)
+    table_average = info.date_table_average(df)
+
+    now = datetime.strftime(datetime.now(), "%H:%M:%S")
 
     return render_template(
         "production_plan.html",
         table=table,
         plot=plot,
         table_average=table_average,
+        now=now,
     )
 
 

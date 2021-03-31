@@ -13,10 +13,11 @@
 
 
     <main>
+        {% block header %}{% endblock %}
         {% block nav %}{% endblock %}
         {% block content %}
 
-        <!--<meta http-equiv="refresh" content="10"> -->
+        <meta http-equiv="refresh" content="1800">
 
 
         <div class="production_plan">
@@ -64,7 +65,6 @@
                     {% for tbl in table_average %}
                     <div class="production_plan_stdblock">
                         <p>{{tbl}}</p>
-                        <br>
                         {{table_average[tbl]|safe}}
                     </div>
                     {% endfor %}
@@ -74,8 +74,7 @@
 
             <div class="production_plan_table">
                 <div class="production_plan_stdblock">
-                    <p>Выработка линий по сменам</p>
-                    <br>
+                    <p>Выработка линий по сменам ({{now}})</p>
                     {{table|safe}}
 
                 </div>
