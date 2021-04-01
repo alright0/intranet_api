@@ -33,6 +33,24 @@ def daily_report(line):
     return render_template("daily_report")
 
 
+@site.route("/production_plan_staff", methods=["GET"])
+def production_plan_staff():
+
+    info = up_puco_table()
+
+    df = info.get_month_table()
+
+    plot = info.subplots(df, style="mini")
+
+    now = datetime.strftime(datetime.now(), "%H:%M:%S")
+
+    return render_template(
+        "production_plan_staff.html",
+        plot=plot,
+        now=now,
+    )
+
+
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
 
@@ -41,7 +59,7 @@ def production_plan():
         period="month",
     )"""
 
-    info = up_puco_table(datetime(2021, 4, 2))
+    info = up_puco_table()
     df = info.get_month_table()
 
     """df = up_puco_table(

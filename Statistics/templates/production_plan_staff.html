@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+<!DOCTYPE html>
+
+<head>
+    <title>{% block title %}Production Plan{% endblock %}</title>
+    {% block javascript %}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    {% endblock %}
+</head>
+
+<body>
+
+
+    <main>
+
+        {% block nav %}{% endblock %}
+        {% block content %}
+
+        <!--<meta http-equiv="refresh" content="1800">-->
+
+
+
+        <div class="production_plan_graphs_staff">
+            <div class="production_plan_stdblock" id='main_graph'>
+                <script>
+                    (function () {
+                        var d3 = Plotly.d3;
+
+                        /* ширина и высота в процентах*/
+                        var WIDTH = 100,
+                            HEIGHT = 88;
+
+                        /* ширина и высота родительского элемента*/
+                        var gd3 = d3.select('#main_graph')
+                            .style({
+                                width: WIDTH + '%',
+                                height: HEIGHT + 'vh',
+                            });
+
+                        var gd = gd3.node();
+
+                        /*встраивание переменной jinja2*/
+                        var graph_json = {{ plot | safe
+                    }};
+
+
+
+
+                    /*здесь создается график*/
+                    graph = Plotly.plot('main_graph', graph_json, {});
+
+                    /* событие изменения ширины*/
+                    window.onresize = function (event) {
+                        gd3.style({
+                            width: WIDTH + '%',
+                            height: HEIGHT + 'vh',
+                        });
+                        gd = gd3.node()
+                        Plotly.Plots.resize(gd);;
+                    };
+                        }) ();
+                </script>
+            </div>
+        </div>
+
+
+
+
+        {% endblock %}
+    </main>
+
+
+
+
+</body>
+
+</html>

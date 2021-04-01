@@ -474,7 +474,7 @@ class up_puco_table:
         return line_list
 
     # NOTE: Строит bar график линий c подсветкой выработки
-    def subplots(self, df2):
+    def subplots(self, df2, style='original'):
         """Эту функцию можно вызвать, чтобы построить график линий за даты,
         указанные в экземпляре классa. Функция принимает на вход фрейм экземпляра и
         возвращает json для построения в plotly.js
@@ -554,16 +554,20 @@ class up_puco_table:
                     row=row,
                     col=col,)
 
+        date_start_str = df3['date_stop'].iloc[0]
+        date_end_str = df3['date_stop'].iloc[-1]
+
+        
         # дополнительное оформление
         fig2.update_layout(
             margin=dict(t=70, l=70, b=70, r=30),
-            title_text="<b>Выпуск линий по сменам</b>",
+            title_text="<b>Выпуск линий по сменам за период " + date_start_str + " - " + date_end_str + "</b>",
             title_font_size=16,
             title_x=0.5,
             title_y=0.98,
             showlegend=False,
             font={
-                "size": 10,
+                "size": 10 if style=='original' else 13,
             },
         )
 

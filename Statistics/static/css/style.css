@@ -208,33 +208,35 @@ footer p{
 }
 
 
-/* классы production_plan.html */
+/* production_plan.html */
 
 .production_plan{
-    /*margin:8px;*/
-    /*height: 88vh;*/
     display:grid;
     grid-template-columns: repeat(2, minmax(350px,1fr));
     grid-gap: 7px;
     grid-template-areas: "a b b";
-    /*flex-wrap: wrap;
-    flex-direction: row;
-    align-content: start;
-    justify-content: space-around;*/
     padding: 10px 8px 10px 8px;
 
 }
 
+.production_plan_graphs_staff{
+    background: var(--line_stop);
+    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
+    /*width:100%;*/
+    padding: 10px;
+    /*grid-area: a;*/
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: Start;
+    justify-content: center;
+    gap: 7px;
+}
 .production_plan_stdblock{
     background: #FFF;
     box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
     border-radius: 8px;
-    /*border: #000 solid;*/
-    /*display:flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: start;
-    justify-content: center;*/
     display: block;
     text-align: -webkit-center;
     font-size: 7pt;
@@ -258,17 +260,12 @@ footer p{
     background: var(--line_stop);
     box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
     width:97%;
-    /*height:-webkit-fill-available;*/
     padding: 10px;
     grid-area: a;
     border-radius: 5px;
-    /*display: grid;
-    grid-gap: 7px;
-    grid-template-rows: repeat(3,auto);*/
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    /*padding: 10px;*/
     align-content: Start;
     justify-content: left;
     gap: 7px;
@@ -278,17 +275,10 @@ footer p{
 .production_plan_table{
     background: var(--line_stop);
     box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
-    /*box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;*/
-    /*width:40%;*/
-    /*height:-webkit-fill-available;*/
     border-radius: 5px;
     grid-area: b;
     padding: 10px;
-    /*display:flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: start;
-    justify-content: space-around;*/
+
 }
 
 .production_plan_table_av{
@@ -301,8 +291,13 @@ footer p{
 
 }
 
+/* конец production_plan.html*/
 
-/* конец классов production_plan.html*/
+/* production_plan_Staff.html */
+
+
+/* конец production_plan_Staff.html */
+
 
 /*
 @media screen and (orientation: portrait){
