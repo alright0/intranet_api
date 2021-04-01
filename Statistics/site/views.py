@@ -2,7 +2,16 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 
 import sqlalchemy as db
-from flask import Flask, jsonify, redirect, render_template, request, url_for, Blueprint
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    Blueprint,
+    session,
+)
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -27,7 +36,12 @@ def daily_report(line):
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
 
-    info = up_puco_table(datetime(2021, 4, 1), period="month")
+    """info = up_puco_table(
+        datetime(2021, 3, 1),
+        period="month",
+    )"""
+
+    info = up_puco_table(datetime(2021, 4, 2))
     df = info.get_month_table()
 
     """df = up_puco_table(
@@ -49,6 +63,14 @@ def production_plan():
     )
 
 
+@site.route("/test", methods=["GET"])
+def tests():
+
+    now = datetime.strftime(datetime.now(), "%H:%M:%S")
+
+    return render_template("test.html", now=now)
+
+
 # домашняя страница
 @site.route("/", methods=["GET"])
 def index():
@@ -60,9 +82,11 @@ def index():
 
     lines_dict = dict(zip(LINES, lines_status))
 
+    now = datetime.strftime(datetime.now(), "%H:%M:%S")
+
     # print(lines_dict)
 
-    return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
+    return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
 
 
 # страница с ежедневным отчетом

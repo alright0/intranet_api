@@ -484,8 +484,6 @@ class up_puco_table:
 
         line_list = self.__get_line_list(df3)
 
-        print(line_list)
-
         df3 = df3.sort_index().sort_values("letter", kind="mergesort")
 
         # расчет количества столбцов графиков, по умолчанию, если графиков больше 5, то
@@ -511,6 +509,11 @@ class up_puco_table:
         # наполнение тела графиками.
         for i in range(len(line_list)):
 
+            # позиционирование графика в subplots
+            row=math.ceil((i + 1) / 5)
+            col=math.ceil(i - 5 * (i // 5) + 1)
+
+
             # раскрашивание в зависимости от выработки
             color_list = []
             color_list = df3[line_list[i]].apply(
@@ -521,9 +524,10 @@ class up_puco_table:
                 else "#003882"
             )
 
+            
             fig2.add_trace(
                 go.Bar(
-                    x=df3["letter"],
+                    x=df3['letter'],
                     y=df3[line_list[i]],
                     name=line_list[i],
                     marker_color=color_list,
@@ -535,9 +539,20 @@ class up_puco_table:
                     + "<br>Выпуск: "
                     + df3[line_list[i]].astype(str),
                 ),
-                row=math.ceil((i + 1) / 5),
-                col=math.ceil(i - 5 * (i // 5) + 1),
-            )
+                row=row,
+                col=col,
+                )
+        
+            # обновление осей - добавление количества смен
+            xaxis_tick_df = df3.loc[df3[line_list[i]]>0]
+            xaxis_tick_df = pd.pivot_table(xaxis_tick_df,index=[xaxis_tick_df["letter"]],values=[line_list[i]],aggfunc=lambda x:len(x>0),).reset_index()
+
+            if not xaxis_tick_df.empty:
+                fig2.update_xaxes(
+                    ticktext=xaxis_tick_df['letter'] + ' (' + xaxis_tick_df[line_list[i]].astype(str) + ")", 
+                    tickvals=xaxis_tick_df['letter'],
+                    row=row,
+                    col=col,)
 
         # дополнительное оформление
         fig2.update_layout(

@@ -132,7 +132,7 @@ def get_line_status(line):
                     line_status_dict["camera"]["defrate"] = []
                     line_status_dict["camera"]["last_meas"] = []
             except:
-                line_status_dict["camera"]["defrate"] = ["--/--"]
+                line_status_dict["camera"]["defrate"] = [0.0]  # ["--/--"]
                 line_status_dict["camera"]["last_meas"] = 0
         else:
             line_status_dict["status"] = "STOP"

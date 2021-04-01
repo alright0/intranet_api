@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+# from flask.ext.session import Session
+
 from Statistics.config import VM, FC
 from Statistics.data.table import make_table
 
@@ -16,21 +18,25 @@ client = app.test_client()
 
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
-    f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}"
+    f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
 )
 
 # создание подключения к базе EN-DB05
 fc_engine = create_engine(
-    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}"
+    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
 )
 
 
 session_cam = scoped_session(
-    sessionmaker(autocommit=False, autoflush=False, bind=cam_engine)
+    sessionmaker(
+        autocommit=False, autoflush=False, bind=cam_engine, expire_on_commit=False
+    )
 )
 
 session_fc = scoped_session(
-    sessionmaker(autocommit=False, autoflush=False, bind=fc_engine)
+    sessionmaker(
+        autocommit=False, autoflush=False, bind=fc_engine, expire_on_commit=False
+    )
 )
 
 
