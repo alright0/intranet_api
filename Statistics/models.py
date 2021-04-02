@@ -92,8 +92,8 @@ class up_puco_export(Base_fc):
         ).filter(
             (cast(self.start_date, db.Integer) >= dt)
             & (cast(self.start_date, db.Integer) <= dt2)
-            & (cast(self.shift, db.Integer) > 0)
-            & (self.puco_code != "00000000")
+            # & (cast(self.shift, db.Integer) > 0)
+            # & (self.puco_code != "00000000")
             & (self.start_time != "00000000")
             & (self.end_time != "00000000")
             & (self.line == line)

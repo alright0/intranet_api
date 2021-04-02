@@ -12,6 +12,7 @@ from Statistics.config import VM, FC
 from Statistics.data.table import make_table
 
 app = Flask(__name__)
+# app.config.from_object(Config)
 
 # тестовый клиент для тестов
 client = app.test_client()

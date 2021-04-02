@@ -54,12 +54,10 @@ def production_plan_staff():
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
 
-    """info = up_puco_table(
-        datetime(2021, 3, 1),
-        period="month",
-    )"""
+    # info = up_puco_table(datetime(2021, 3, 29), period="day", delta=5)
 
-    info = up_puco_table()
+    info = up_puco_table(datetime(2021, 3, 1))
+
     df = info.get_month_table()
 
     """df = up_puco_table(
@@ -79,14 +77,6 @@ def production_plan():
         table_average=table_average,
         now=now,
     )
-
-
-@site.route("/test", methods=["GET"])
-def tests():
-
-    now = datetime.strftime(datetime.now(), "%H:%M:%S")
-
-    return render_template("test.html", now=now)
 
 
 # домашняя страница

@@ -31,6 +31,9 @@ body{
     font-family: 'Open Sans', sans-serif;
 }
 
+table{
+    border-spacing: 0;
+}
 
 .logo{
     background: var(--silgan_blue);
@@ -241,6 +244,7 @@ footer p{
     text-align: -webkit-center;
     font-size: 7pt;
     padding: 10px;
+
 }
 
 .production_plan_stdblock p{
@@ -285,9 +289,10 @@ footer p{
     font-size: 7pt;
 }
 
-.production_plan_table tr{
+.production_plan_table {
 
     font-size: 7pt;
+
 
 }
 

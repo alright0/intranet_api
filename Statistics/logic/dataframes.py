@@ -248,7 +248,7 @@ class up_puco_table:
             # переразметка дат под соответствие сменам. Если смена переходит из одного
             # дня в другой, то дату необходимо сместить на 8 часов, иначе ничего не менять
             df_lvl_1["shift"] = df_lvl_1[["shift", "date_stop"]].apply(
-                lambda x: 1 if x[1].hour >= 8 and x[1].hour < 20 else 2,
+                lambda x: 1 if x[1].hour >= 8 and x[1].hour < 20 else 2 if x[0] !=0 else 0,
                 axis=1,
             )
 
@@ -256,13 +256,15 @@ class up_puco_table:
                 df_lvl_1[["date_stop", "shift"]]
                 .apply(
                     lambda x: x[0]
-                    if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8) or x[1] == 1
+                    if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8) or x[1] == 1 or x[1]==0
                     else x[0] - timedelta(hours=8),
                     axis=1,
                 )
                 .astype(str)
                 .str[:10]
             )
+
+            #df_lvl_1.to_csv(r"\\en-fs01\en-public\STP\\" + line + '.csv', sep=';')
 
             return df_lvl_1
         else:
@@ -484,6 +486,10 @@ class up_puco_table:
 
         line_list = self.__get_line_list(df3)
 
+        # первая и последняя даты для заголовка графика
+        date_start_str = df3['date_stop'].iloc[0]
+        date_end_str = df3['date_stop'].iloc[-1]
+
         df3 = df3.sort_index().sort_values("letter", kind="mergesort")
 
         # расчет количества столбцов графиков, по умолчанию, если графиков больше 5, то
@@ -543,6 +549,7 @@ class up_puco_table:
                 col=col,
                 )
         
+            
             # обновление осей - добавление количества смен
             xaxis_tick_df = df3.loc[df3[line_list[i]]>0]
             xaxis_tick_df = pd.pivot_table(xaxis_tick_df,index=[xaxis_tick_df["letter"]],values=[line_list[i]],aggfunc=lambda x:len(x>0),).reset_index()
@@ -554,10 +561,7 @@ class up_puco_table:
                     row=row,
                     col=col,)
 
-        date_start_str = df3['date_stop'].iloc[0]
-        date_end_str = df3['date_stop'].iloc[-1]
 
-        
         # дополнительное оформление
         fig2.update_layout(
             margin=dict(t=70, l=70, b=70, r=30),
@@ -567,7 +571,7 @@ class up_puco_table:
             title_y=0.98,
             showlegend=False,
             font={
-                "size": 10 if style=='original' else 13,
+                "size": 9 if style=='original' else 13,
             },
         )
 
@@ -576,7 +580,7 @@ class up_puco_table:
 
         return plot_json
 
-
+    # NOTE: таблица с итогами по буквам смен
     def date_table_average(self, df2):
         """ Функция принимает фрейм из ``get_line_list`` и возвращает словарь, где ключ - название линии,
         а значение - отрендеренный html, содержащий таблицу информацию по линии: буквы смены, 
@@ -590,109 +594,83 @@ class up_puco_table:
             ИТОГО	47	     37,826	 1,772,781 
         """
 
-        df3 = df2.copy()
+        df3 = pd.DataFrame([], columns=['date_stop','shift', 'letter', 'absolute'])
 
-        line_list = self.__get_line_list(df3)
+        line_list = self.__get_line_list(df2)
 
-        # посчитать смену, если выпуск по ней больше 25% от нормы выработки
-        for line in line_list:
-            df3[line + " shift"] = df3[line].apply(
-                lambda x: 1 if x > LINE_OUTPUT[line] / 4 else 0
-            )
-
-        # в этом блоке формируется список функций агрегации
-        pivot_dict = dict()
-        pivot_dict.update({line: "sum" for line in line_list})
-        pivot_dict.update({f"{line} shift": "sum" for line in line_list})
-
-        #print(pivot_dict)
-
-
-        df3 = pd.pivot_table(
-            df3, index=[df3["letter"]], values=pivot_dict, aggfunc=pivot_dict
-        ).reset_index()
-
-        line_list_av = []
-
-        for line in line_list:
-
-            df3[line + " average"] = df3[line] / df3[line + " shift"]
-
-            df3.replace([np.inf, -np.inf], np.nan, inplace=True)
-
-            df3[line + " average"].fillna(0, inplace=True)
-
-            # print(df3)
-
-            # df3[line + " average"] = df3[line + " average"].astype(int)
-
-            line_list_av.append(line + " average")
-
-        df3 = df3.reindex(sorted(df3.columns, reverse=True), axis=1)
-
-        df_list = []
         line_dict = dict()
 
         for line in line_list:
 
-            df4 = df3[["letter", f"{line} shift", f"{line} average", line]]
+            df3 = pd.DataFrame([])
 
-            df4 = df4.append(
+            df3[['date_stop', 'shift', 'letter', 'absolute']] = df2[['date_stop', 'shift', 'letter', line]]
+
+            # посчитать смену, если выпуск по ней больше 25% от нормы выработки
+            df3["shift"] = df3['absolute'].apply(
+                lambda x: 1 if x > LINE_OUTPUT[line] / 4 else 0
+            )
+
+            # здесь формируется основная таблица
+            df3 = pd.pivot_table(
+                df3, index=[df3["letter"]], values=['shift', 'absolute'], aggfunc='sum'
+                ).reset_index()
+
+            # расчет среднего
+            df3["average"] = df3['absolute'] / df3["shift"]
+
+            df3.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+            df3["average"].fillna(0, inplace=True)
+
+            df3=df3[['letter', 'shift', 'average', 'absolute']]
+
+            # добавление строки итогов
+            df3 = df3.append(
                 pd.DataFrame(
                     [
                         [
-                            "ИТОГО",
-                            df4[f"{line} shift"].sum(),
-                            df4[f"{line} average"].mean(),
-                            df4[line].sum(),
+                            "TOTAL",
+                            df3["shift"].sum(),
+                            df3["average"].mean(),
+                            df3['absolute'].sum(),
                         ]
                     ],
-                    columns=list(df4.columns.values),
+                    columns=list(df3.columns.values),
                 ),
                 ignore_index=True,
             )
 
-            df4[line + " average"] = df4[line + " average"].astype(int)
-
-            # df4.iloc[-1] = ["ИТОГО", df4[f"{line} shift"].sum(), "-", df4[line].sum()]
-
-            df4 = df4.rename(
-                columns={
-                    "letter": "Буква",
-                    f"{line} shift": "Смена",
-                    f"{line} average": "Средний",
-                    line: "Абс.",
-                }
-            )
-
+            df3[['absolute', "average"]] = df3[['absolute', "average"]].astype(int)
             
+            # стили
             html = (
-                df4.style.format({"Абс.": "{:,}"})
-                .format({"Средний": "{:,}"})
+                df3.style.format({"absolute": "{:,}"})
+                .format({"average": "{:,}"})
                 .apply(
-                    self.__line_max, subset=pd.IndexSlice[df3.index[0:-1], ["Средний"]]
+                    self.__line_max, subset=pd.IndexSlice[df3.index[:-1], ["average"]]
                 )
                 .set_properties(
                     **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
-                    subset="Средний",
+                    subset="average",
                 )
                 .set_properties(
                     **{"text-align": "right"},
-                    subset="Абс.",
+                    subset="absolute",
                 )
                 .set_properties(
                     **{
-                        "padding": "0 5px 0 5px",
+                        "padding": "0 10px",
                         "border-bottom": "1px solid #e0e0e0",
                     }
                 )
                 .set_properties(
                     **{"font-weight": "600", "border-bottom": "none"},
-                    subset=pd.IndexSlice[df4.index[-1]],
+                    subset=pd.IndexSlice[df3.index[-1]],
                 )
                 .set_properties(
                     **{"text-align": "center"},
-                    subset=["Смена", "Буква"],
+                    subset=["shift", "letter"],
                 )
                 .hide_index()
                 .render()
@@ -718,12 +696,13 @@ class up_puco_table:
 
         df3 = df2.copy()
 
+        line_list = self.__get_line_list(df3)
+        
+        # переименование для заголовков на русском
         df3.rename(
-            columns={"date_stop": "Дата", "shift": "Cмена", "letter": "Буква"},
+            columns={"date_stop": "date"},
             inplace=True,
         )
-
-        line_list = self.__get_line_list(df3)
 
         # строка итогов
         df3 = df3.append(
@@ -732,7 +711,7 @@ class up_puco_table:
                     [
                         "",
                         "",
-                        "ИТОГО",
+                        "TOTAL",
                         *[df3[tot].sum() for tot in line_list],
                     ]
                 ],
@@ -759,8 +738,6 @@ class up_puco_table:
             .hide_index()
             .render()
         )
-
-        html = html
 
         return html
 
