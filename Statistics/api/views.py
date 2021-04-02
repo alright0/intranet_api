@@ -1,15 +1,9 @@
 from datetime import date, datetime, timedelta
 
-import sqlalchemy as db
-from flask import Flask, jsonify, redirect, render_template, request, url_for, Blueprint
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+from flask import jsonify, Blueprint
 
 from Statistics.config import VM
-from Statistics.data.table import make_table
 from Statistics.logic.logic import get_camera_now, makedate
-
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
 

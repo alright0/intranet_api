@@ -1,24 +1,11 @@
 from datetime import date, datetime, timedelta
 import pandas as pd
-import sqlalchemy as db
-from flask import Flask, jsonify, redirect, render_template, request, url_for
-from sqlalchemy import create_engine, cast
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+from flask import jsonify
 
-from Statistics.config import *
-from Statistics.data.table import make_table
+from Statistics.config import LINES, LINE_OUTPUT, IBEA_ADDRESS, IBEA_CAMERA_MAP
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 from Statistics.logic.dataframes import *
-
-
-def get_df():
-
-    dt = 20210320
-    dt2 = 20210321
-
-    print(get_df_lvl_0(dt, dt2, "LZ-01"))
 
 
 def order_description(order):

@@ -1,18 +1,15 @@
 from datetime import date, datetime, timedelta
 
 import sqlalchemy as db
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-# from flask.ext.session import Session
-
-from Statistics.config import VM, FC
-from Statistics.data.table import make_table
+from Statistics.config import VM, FC, Config
 
 app = Flask(__name__)
-# app.config.from_object(Config)
+app.config.from_object(Config)
 
 # тестовый клиент для тестов
 client = app.test_client()
@@ -53,7 +50,9 @@ from Statistics.models import *
 # добавление Blueprints
 from .api.views import camera
 from .site.views import site
+from .users.views import users
 
 # регистрация Blueprints
 app.register_blueprint(camera)
 app.register_blueprint(site)
+app.register_blueprint(users)

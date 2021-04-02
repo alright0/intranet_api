@@ -7,17 +7,11 @@ from datetime import date, datetime, timedelta
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import sqlalchemy as db
 from dateutil.relativedelta import relativedelta
-from flask import Flask, jsonify, redirect, render_template, request, url_for
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
-from sqlalchemy import cast, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
 
-from Statistics.config import *
-from Statistics.data.table import make_table
+from Statistics.config import LINE_OUTPUT, LINES
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 

@@ -1,6 +1,5 @@
-from Statistics.app import db, sessionmaker, Base_cam, Base_fc, fc_engine
+from Statistics.app import db, Base_cam, Base_fc, fc_engine
 from sqlalchemy import cast
-import pandas as pd
 
 
 class Camera(Base_cam):

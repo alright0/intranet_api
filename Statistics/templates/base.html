@@ -24,9 +24,9 @@
     {% block nav %}
     <div class="nav">
         <div class="topnav">
-            <a href="/daily_camera_report">Ежедневный отчет камер</a>
-            <a href="/now_camera_report">Текущее состояние камер</a>
-            <a href="/production_plan">План производства</a>
+            <a href="{{ url_for('site.camera_now') }}">Камеры</a>
+            <a href="{{ url_for('site.production_plan') }}">План производства</a>
+            <a href="{{ url_for('site.production_plan_staff') }}">Табло</a>
         </div>
     </div>
     {% endblock %}
