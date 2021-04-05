@@ -35,7 +35,9 @@ def get_camera_info(line):
         )
 
     if not serialized:
-        return {"message": "data not found"}, 400
+        serialized.append({"message": "data not found"})
+
+        return jsonify(serialized), 400
 
     return jsonify(serialized), 200
 
@@ -43,4 +45,11 @@ def get_camera_info(line):
 # api-ответ Нахождение последней записи в базе
 @camera.route("/camera/last/<line>", methods=["GET"])
 def get_camera_info_last(line):
-    return get_camera_now(line), 200
+
+    serialized = get_camera_now(line)
+
+    if not serialized["message"] == "OK":
+
+        return jsonify(serialized), 400
+
+    return jsonify(serialized), 200

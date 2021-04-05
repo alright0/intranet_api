@@ -156,9 +156,10 @@ def get_camera_now(line):
         }
 
     except:
-        return jsonify({"message": "data not found"})
 
-    return jsonify(serialized)
+        return {"message": "data not found"}
+
+    return serialized
 
 
 def camera_json_deserialize(json_response):

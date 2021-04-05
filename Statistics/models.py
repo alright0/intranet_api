@@ -2,6 +2,23 @@ from Statistics import db, Base_cam, Base_fc, fc_engine
 from sqlalchemy import cast
 
 
+class User(Base_cam):
+    """ """
+
+    __bind_key__ = "cam_engine"
+    __tablename__ = "users"
+
+    id = db.Column(
+        db.Integer, nullable=False, unique=True, primary_key=True, autoincrement=True
+    )
+    username = db.Column(db.VARCHAR(64), nullable=False)
+    password = db.Column(db.VARCHAR(128), nullable=False)
+    accesslevel = db.Column(db.Integer, default=1)
+
+    def __repr__(self):
+        return "<User {}>".format(self.username)
+
+
 class Camera(Base_cam):
     """Класс описывает таблицу ``ibea_agregate`` в ``EN-VM01``\n
     Таблица хранит данные с камер\n

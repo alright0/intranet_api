@@ -11,6 +11,7 @@ from config import VM, FC, Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
 # тестовый клиент для тестов
 client = app.test_client()
 
@@ -36,6 +37,8 @@ session_fc = scoped_session(
         autocommit=False, autoflush=False, bind=fc_engine, expire_on_commit=False
     )
 )
+
+session = session_cam()
 
 
 Base_cam = declarative_base()
