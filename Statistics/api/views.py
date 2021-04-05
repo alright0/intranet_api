@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 
 from flask import jsonify, Blueprint
 
-from Statistics.config import VM
+from config import VM
 from Statistics.logic.logic import get_camera_now, makedate
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema

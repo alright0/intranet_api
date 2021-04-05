@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
 
-from Statistics.config import LINE_OUTPUT, LINES
+from config import LINE_OUTPUT, LINES
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 

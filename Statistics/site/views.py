@@ -4,8 +4,7 @@ import pandas as pd
 import sqlalchemy as db
 from flask import render_template, request, Blueprint
 
-from Statistics.app import *
-from Statistics.config import *
+from config import *
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
 from Statistics.forms import LoginForm

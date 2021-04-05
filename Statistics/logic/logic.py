@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 from flask import jsonify
 
-from Statistics.config import LINES, LINE_OUTPUT, IBEA_ADDRESS, IBEA_CAMERA_MAP
+from config import LINES, LINE_OUTPUT, IBEA_ADDRESS, IBEA_CAMERA_MAP
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 from Statistics.logic.dataframes import *

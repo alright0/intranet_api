@@ -1,4 +1,4 @@
-from Statistics.app import db, Base_cam, Base_fc, fc_engine
+from Statistics import db, Base_cam, Base_fc, fc_engine
 from sqlalchemy import cast
 
 
