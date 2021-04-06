@@ -68,21 +68,6 @@ def index():
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
 
 
-# страница с текущим положением дел по камерам
-@site.route("/now_camera_report", methods=["GET"])
-def camera_now():
-
-    line_info = []
-
-    for line in IBEA_ADDRESS:
-        line_info.append(camera_json_deserialize(get_camera_now(line)))
-
-    return render_template(
-        "camera_report_cont.html",
-        lines=line_info,
-    )
-
-
 # обработчик 404
 @site.errorhandler(404)
 def page_not_found(e):
