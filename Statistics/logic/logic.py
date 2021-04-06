@@ -80,8 +80,9 @@ def get_line_status(line):
                 line_status_dict["order"]["description"] = order_description(
                     line_status.order
                 )
+
             except:
-                line_status_dict["order_description"] = "Description not found"
+                line_status_dict["order"]["description"] = "Description not found"
 
             line_status_dict["camera"] = {}
 
@@ -128,7 +129,6 @@ def get_line_status(line):
         line_status_dict["status"] = "Line not found"
 
     finally:
-        # print(line_status_dict)
         return line_status_dict
 
 

@@ -5,6 +5,8 @@ from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
+from pathlib import Path
+
 
 from config import VM, FC, Config
 
@@ -15,15 +17,28 @@ app.config.from_object(Config)
 # тестовый клиент для тестов
 client = app.test_client()
 
-# создание подключения к базе EN-VM01
-cam_engine = create_engine(
-    f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
-)
+path = Path(__file__).parents[0]
 
-# создание подключения к базе EN-DB05
-fc_engine = create_engine(
-    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
-)
+if 1:
+    # создание подключения к базе EN-VM01
+    cam_engine = create_engine(
+        f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
+    )
+
+    # создание подключения к базе EN-DB05
+    fc_engine = create_engine(
+        f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
+    )
+else:
+    # создание подключения к базе EN-VM01
+    cam_engine = create_engine(
+        f"sqlite:///{path}/Demo/VM.db",
+    )
+
+    # создание подключения к базе EN-DB05
+    fc_engine = create_engine(
+        f"sqlite:///{path}/Demo/FC.db",
+    )
 
 
 session_cam = scoped_session(
