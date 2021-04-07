@@ -17,9 +17,15 @@ def order_description(order):
 
     index = as_line_speed.query.filter(as_line_speed.order == order).first().index
 
+    # print(index)
+    # "4-05-1-080-1-00003"
+    # index = "4-05-1-080-1-00003"
+
     description = (
         as_material_data.query.filter(as_material_data.index == index).first().full_name
     )
+
+    # print(description)
 
     cut = 40
     # если длина описания больше cut, то обрезать его

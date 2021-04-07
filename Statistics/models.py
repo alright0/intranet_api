@@ -1,9 +1,23 @@
-from Statistics import db, Base_cam, Base_fc, fc_engine
+from Statistics import db, Base_cam, Base_fc, cam_engine, fc_engine, login
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import cast
+from flask_login import UserMixin
 
 
-class User(Base_cam):
-    """ """
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
+
+class User(UserMixin, Base_cam):
+    """Класс описывает таблицу ``users`` в ``EN-VM01``\n
+    Таблица хранит данные пользователей:\n
+    ``id`` - int - порядковый номер строки
+    ``username`` - str - Имя пользователя
+    ``password`` - str - Пароль
+    ``accesslevel`` - int - Уровень доступа
+    ``email`` - str - почтовый адрес
+    """
 
     __bind_key__ = "cam_engine"
     __tablename__ = "users"
@@ -12,11 +26,18 @@ class User(Base_cam):
         db.Integer, nullable=False, unique=True, primary_key=True, autoincrement=True
     )
     username = db.Column(db.VARCHAR(64), nullable=False)
-    password = db.Column(db.VARCHAR(128), nullable=False)
+    password = db.Column(db.VARCHAR(64), nullable=False)
+    email = db.Column(db.VARCHAR(64))
     accesslevel = db.Column(db.Integer, default=1)
 
     def __repr__(self):
         return "<User {}>".format(self.username)
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 
 class Camera(Base_cam):

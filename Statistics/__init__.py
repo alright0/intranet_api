@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 
 import sqlalchemy as db
 from flask import Flask
+from flask_login import LoginManager, UserMixin
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -13,6 +14,8 @@ from config import VM, FC, Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
+login = LoginManager(app)
+login.login_view = "users.login"
 
 # тестовый клиент для тестов
 client = app.test_client()

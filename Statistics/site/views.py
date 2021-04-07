@@ -2,8 +2,8 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 
 import sqlalchemy as db
-from flask import render_template, request, Blueprint
-
+from flask import render_template, request, Blueprint, redirect, url_for
+from flask_login import current_user, login_required
 from config import *
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
@@ -11,6 +11,30 @@ from Statistics.forms import LoginForm
 from Statistics.logic.logic import *
 
 site = Blueprint("site", __name__)
+
+# домашняя страница
+@site.route("/", methods=["GET"])
+def index():
+
+    lines_status = []
+    for line in LINES:
+        lines_status.append(get_line_status(line))
+
+    lines_dict = dict(zip(LINES, lines_status))
+    now = datetime.strftime(datetime.now(), "%H:%M:%S")
+
+    # print(lines_dict)
+
+    return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
+
+
+@site.route("/test", methods=["get"])
+@login_required
+def test():
+
+    if current_user.accesslevel < 4:
+        return redirect(url_for("site.access_denied"))
+    return render_template("base.html")
 
 
 @site.route("/production_plan_staff", methods=["GET"])
@@ -50,25 +74,11 @@ def production_plan():
     )
 
 
-# домашняя страница
-@site.route("/", methods=["GET"])
-def index():
-
-    lines_status = []
-
-    for line in LINES:
-        lines_status.append(get_line_status(line))
-
-    lines_dict = dict(zip(LINES, lines_status))
-
-    now = datetime.strftime(datetime.now(), "%H:%M:%S")
-
-    # print(lines_dict)
-
-    return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
+@site.route("/access_denied", methods=["get"])
+def access_denied():
+    return render_template("access_denied.html")
 
 
-# обработчик 404
 @site.errorhandler(404)
 def page_not_found(e):
 

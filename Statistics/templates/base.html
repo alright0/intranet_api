@@ -26,7 +26,13 @@
         <div class="topnav">
             <a href="{{ url_for('site.production_plan') }}">План производства</a>
             <a href="{{ url_for('site.production_plan_staff') }}">Табло</a>
-            <a href="{{ url_for('login') }}">Войти</a>
+            {% if current_user.is_anonymous %}
+            <a href="{{ url_for('users.login') }}">Войти</a>
+            {% else %}
+            <a href="{{ url_for('users.logout') }}">Выйти </a>
+            <p style="font-size: 8pt; padding: 5px;">Вы вошли как <b>{{current_user.username|title }}</b></p>
+            {% endif %}
+
         </div>
     </div>
     {% endblock %}
