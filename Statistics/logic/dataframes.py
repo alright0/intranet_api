@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
 
-from config import LINE_OUTPUT, LINES
+from config import LINE_OUTPUT, LINES, IBEA_CAMERA_MAP
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
 
@@ -41,6 +41,20 @@ class up_puco_table:
         self.delta = delta
         self.lines = lines
 
+        dates = self.__parsedata()
+
+        self.date_start = dates['date_start'] # 01.01.2021 00:00:00
+        self.date_end = dates['date_end'] # 31.01.2021 00:00:00
+        self.date_start_with_hours = dates['date_start_with_hours'] # 01.01.2021 00:80:00
+        self.date_end_with_hours = dates['date_end_with_hours'] # 31.01.2021 00:80:00
+        self.date_start_sql = dates['date_start_sql'] # 20210101
+        self.date_end_sql = dates['date_end_sql'] # 20210131
+
+
+    
+
+
+        
     # NOTE: парсинг периодов входящей даты
     def __parsedata(self):
         """Приватная функция, реализующая парсинг даты для последующего формирования запоса\n
@@ -57,7 +71,7 @@ class up_puco_table:
             ночная смена заканчивается в 8:00 следующего дня, но выборка времени(dt_start, dt_end) должна содежрать\n
             только актуальные даты, отсекая лишние значения. Возвращает дату в формате "20210225"
         """
-
+        # Начальная дата, но день или 1(если peroid=месяц) или начальный(если peroid=день)
         dt_start = datetime(
             self.date.year,
             self.date.month,
@@ -66,6 +80,7 @@ class up_puco_table:
 
         if self.period == "month":
 
+            # Начальная дата + количество месяцев из переменной delta. Это временная переменная
             dt_end = (
                 datetime(
                     dt_start.year,
@@ -75,6 +90,7 @@ class up_puco_table:
                 + relativedelta(months=self.delta - 1)
             )
 
+            # конечная дата + последний день последнего месяца
             dt_end = datetime(
                 dt_end.year,
                 dt_end.month,
@@ -83,14 +99,19 @@ class up_puco_table:
 
         elif self.period == "day":
 
+            # конечная дата + количество дней из переменной delta.
             dt_end = dt_start + relativedelta(days=self.delta - 1)
 
+        # начальная и конечная даты с указанием часов
+        date_start_with_hours = dt_start + timedelta(hours=8)
+        date_end_with_hours = dt_end + timedelta(days=1, hours=8)
+        
+        
         # превращение даты из формата 2021-03-01 00:00:00 в 20210301
         date_start_sql = f"{str(dt_start)[:4]}{str(dt_start)[5:7]}{str(dt_start)[8:10]}"
 
-        date_end_sql = dt_end + timedelta(days=1)
         date_end_sql = (
-            f"{str(date_end_sql)[:4]}{str(date_end_sql)[5:7]}{str(date_end_sql)[8:10]}"
+            f"{str(date_end_with_hours)[:4]}{str(date_end_with_hours)[5:7]}{str(date_end_with_hours)[8:10]}"
         )
 
         return {
@@ -98,10 +119,17 @@ class up_puco_table:
             "date_end": dt_end,
             "date_start_sql": date_start_sql,
             "date_end_sql": date_end_sql,
+            "date_start_with_hours":date_start_with_hours,
+            "date_end_with_hours":date_end_with_hours,
         }
 
+    def __repr__(self):
+
+        return (f"Информация за период с {datetime.strftime(self.date_start, '%Y-%m-%d')} " +
+        f"по {datetime.strftime(self.date_end, '%Y-%m-%d')} по работе линий:\n{self.lines}")
+
     # NOTE: на основе этого фрейма строятся все остальные
-    def __get_df_lvl_0(self, line):
+    def __get_raw_df_by_line(self, line):
         """Принимает запрос из ``up_puco_export`` на ``EN-DB05`` и
         возвращает обработанный DataFrame готовый к\n
         дальнейшей обработке, построению таблиц и графиков\n
@@ -112,142 +140,142 @@ class up_puco_table:
         2     LZ-01  10117            682        52672      2     OGE04       0 2021-03-01 00:22:47   STOP 0 days 00:01:07
         3     LZ-01  10117            682        53050      2       RUN     378 2021-03-01 00:22:53    RUN 0 days 00:00:06
         """
-        dates = self.__parsedata()
+        
 
-        df_lvl_0 = pd.DataFrame(
+        raw_df_by_line = pd.DataFrame(
             up_puco_export.get_production_info(
-                dates["date_start_sql"], dates["date_end_sql"], line
+               self.date_start_sql, self.date_end_sql, line
             )
         )
 
-        if not df_lvl_0.empty:
+        if not raw_df_by_line.empty:
 
             # преобразование дата финиша из текста в дату
-            df_lvl_0["end_date"] = pd.to_datetime(df_lvl_0["end_date"], format="%Y%m%d")
+            raw_df_by_line["end_date"] = pd.to_datetime(raw_df_by_line["end_date"], format="%Y%m%d")
 
             # Преобразование даты старта из текста в дату
-            df_lvl_0["start_date"] = pd.to_datetime(
-                df_lvl_0["start_date"], format="%Y%m%d"
+            raw_df_by_line["start_date"] = pd.to_datetime(
+                raw_df_by_line["start_date"], format="%Y%m%d"
             )
 
             # Смена
-            df_lvl_0["shift"] = pd.to_numeric(df_lvl_0["shift"])
+            raw_df_by_line["shift"] = pd.to_numeric(raw_df_by_line["shift"])
 
             # преобразование значения датчика входа в цифровой вид
-            df_lvl_0["counter_start"] = pd.to_numeric(df_lvl_0["counter_start"])
+            raw_df_by_line["counter_start"] = pd.to_numeric(raw_df_by_line["counter_start"])
 
             # преобразование значения датчика выхода в цифровой вид
-            df_lvl_0["counter_end"] = pd.to_numeric(df_lvl_0["counter_end"])
+            raw_df_by_line["counter_end"] = pd.to_numeric(raw_df_by_line["counter_end"])
 
             # форматирование кода остановки. Отрезание первых трех нулей
-            df_lvl_0["puco_code"] = df_lvl_0["puco_code"].str[3:]
+            raw_df_by_line["puco_code"] = raw_df_by_line["puco_code"].str[3:]
 
             # форматирование номера заказа. отрезание первых трех нулей
-            df_lvl_0["order"] = df_lvl_0["order"].str[3:]
+            raw_df_by_line["order"] = raw_df_by_line["order"].str[3:]
 
             # форматирование времени старта простоя
-            df_lvl_0["start_time"] = df_lvl_0["start_time"].str[2:]
-            df_lvl_0["start_time"] = (
-                df_lvl_0["start_time"].str[:2]
+            raw_df_by_line["start_time"] = raw_df_by_line["start_time"].str[2:]
+            raw_df_by_line["start_time"] = (
+                raw_df_by_line["start_time"].str[:2]
                 + ":"
-                + df_lvl_0["start_time"].str[2:4]
+                + raw_df_by_line["start_time"].str[2:4]
                 + ":"
-                + df_lvl_0["start_time"].str[4:].replace("60", "59")
+                + raw_df_by_line["start_time"].str[4:].replace("60", "59")
             )
 
             # форматирование времени финиша простоя
-            df_lvl_0["end_time"] = df_lvl_0["end_time"].str[2:]
-            df_lvl_0["end_time"] = (
-                df_lvl_0["end_time"].str[:2]
+            raw_df_by_line["end_time"] = raw_df_by_line["end_time"].str[2:]
+            raw_df_by_line["end_time"] = (
+                raw_df_by_line["end_time"].str[:2]
                 + ":"
-                + df_lvl_0["end_time"].str[2:4]
+                + raw_df_by_line["end_time"].str[2:4]
                 + ":"
-                + df_lvl_0["end_time"].str[4:].replace("60", "59")
+                + raw_df_by_line["end_time"].str[4:].replace("60", "59")
             )
 
             # конкатенция даты и времени начала остановки
-            df_lvl_0["date_start_time"] = pd.to_datetime(
-                df_lvl_0["start_date"].astype(str) + " " + df_lvl_0["start_time"]
+            raw_df_by_line["date_start_time"] = pd.to_datetime(
+                raw_df_by_line["start_date"].astype(str) + " " + raw_df_by_line["start_time"]
             )
 
             # конкатенация даты и времени конца остановки
-            df_lvl_0["date_end_time"] = pd.to_datetime(
-                df_lvl_0["end_date"].astype(str) + " " + df_lvl_0["end_time"]
+            raw_df_by_line["date_end_time"] = pd.to_datetime(
+                raw_df_by_line["end_date"].astype(str) + " " + raw_df_by_line["end_time"]
             )
 
             # получение времени простоя из разницы дат начала и конца
-            df_lvl_0["stop_minutes"] = (
-                (df_lvl_0["date_end_time"] - df_lvl_0["date_start_time"])
+            raw_df_by_line["stop_minutes"] = (
+                (raw_df_by_line["date_end_time"] - raw_df_by_line["date_start_time"])
                 .astype("timedelta64[s]")
                 .astype(int)
             )
 
             # отрезание отрицетельных остановок(время начала меньше времени окончания)
-            df_lvl_0 = df_lvl_0.loc[(df_lvl_0["stop_minutes"] > 1)]
+            raw_df_by_line = raw_df_by_line.loc[(raw_df_by_line["stop_minutes"] > 1)]
 
-            del df_lvl_0["start_date"]
-            del df_lvl_0["start_time"]
-            del df_lvl_0["end_date"]
-            del df_lvl_0["end_time"]
+            del raw_df_by_line["start_date"]
+            del raw_df_by_line["start_time"]
+            del raw_df_by_line["end_date"]
+            del raw_df_by_line["end_time"]
 
-            df_lvl_0.sort_values(by=["date_start_time"], inplace=True)
+            raw_df_by_line.sort_values(by=["date_start_time"], inplace=True)
 
-            df_lvl_0 = df_lvl_0.loc[
-                (df_lvl_0["date_start_time"] < df_lvl_0["date_end_time"])
+            raw_df_by_line = raw_df_by_line.loc[
+                (raw_df_by_line["date_start_time"] < raw_df_by_line["date_end_time"])
             ]
 
             # разделение на коды выпуска и остановки
-            df_temp = df_lvl_0.copy()
+            temp_df = raw_df_by_line.copy()
 
-            df_lvl_0["date_stop"] = df_lvl_0["date_start_time"]
-            df_temp["date_stop"] = df_temp["date_end_time"]
+            raw_df_by_line["date_stop"] = raw_df_by_line["date_start_time"]
+            temp_df["date_stop"] = temp_df["date_end_time"]
 
-            df_lvl_1 = [df_lvl_0, df_temp]
-            df_lvl_1 = pd.concat(df_lvl_1)
+            final_df_by_line = [raw_df_by_line, temp_df]
+            final_df_by_line = pd.concat(final_df_by_line)
 
-            del df_lvl_1["date_start_time"]
-            del df_lvl_1["date_end_time"]
-            del df_lvl_1["stop_minutes"]
+            del final_df_by_line["date_start_time"]
+            del final_df_by_line["date_end_time"]
+            del final_df_by_line["stop_minutes"]
 
-            df_lvl_1 = df_lvl_1.sort_values(by=["date_stop", "counter_end"])
+            final_df_by_line = final_df_by_line.sort_values(by=["date_stop", "counter_end"])
 
             # время события
-            df_lvl_1["minutes"] = (
-                df_lvl_1["date_stop"].diff().fillna(pd.Timedelta(days=0))
+            final_df_by_line["minutes"] = (
+                final_df_by_line["date_stop"].diff().fillna(pd.Timedelta(days=0))
             )
 
-            df_lvl_1 = df_lvl_1.loc[(df_lvl_1["minutes"].dt.seconds > 1)]
+            final_df_by_line = final_df_by_line.loc[(final_df_by_line["minutes"].dt.seconds > 1)]
 
-            df_lvl_1["sheets"] = (
-                df_lvl_1["counter_end"].diff().fillna(0).clip(lower=0).astype(int)
+            final_df_by_line["sheets"] = (
+                final_df_by_line["counter_end"].diff().fillna(0).clip(lower=0).astype(int)
             )
 
             # фильтрация значений стопов. В данной базе стоп может быть нуленвым или
             # отрицательным если остановка короткая. Это стоит фильтровать.
-            df_lvl_1 = df_lvl_1.loc[(df_lvl_1["minutes"].dt.seconds > 0)].reset_index(
+            final_df_by_line = final_df_by_line.loc[(final_df_by_line["minutes"].dt.seconds > 0)].reset_index(
                 drop=True
             )
 
-            df_lvl_1["status"] = (
-                df_lvl_1["counter_start"].diff().fillna(0).clip(lower=0).astype(int)
+            final_df_by_line["status"] = (
+                final_df_by_line["counter_start"].diff().fillna(0).clip(lower=0).astype(int)
             )
 
-            df_lvl_1["status"] = df_lvl_1["status"].apply(
+            final_df_by_line["status"] = final_df_by_line["status"].apply(
                 lambda x: "RUN" if x else "STOP"
             )
-            df_lvl_1["puco_code"] = df_lvl_1[["puco_code", "status"]].apply(
+            final_df_by_line["puco_code"] = final_df_by_line[["puco_code", "status"]].apply(
                 lambda x: "RUN" if x[1] == "RUN" else x, axis=1
             )
 
             # переразметка дат под соответствие сменам. Если смена переходит из одного
             # дня в другой, то дату необходимо сместить на 8 часов, иначе ничего не менять
-            df_lvl_1["shift"] = df_lvl_1[["shift", "date_stop"]].apply(
+            final_df_by_line["shift"] = final_df_by_line[["shift", "date_stop"]].apply(
                 lambda x: 1 if x[1].hour >= 8 and x[1].hour < 20 else 2 if x[0] !=0 else 0,
                 axis=1,
             )
 
-            df_lvl_1["date"] = (
-                df_lvl_1[["date_stop", "shift"]]
+            final_df_by_line["date"] = (
+                final_df_by_line[["date_stop", "shift"]]
                 .apply(
                     lambda x: x[0]
                     if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8) or x[1] == 1 or x[1]==0
@@ -258,15 +286,13 @@ class up_puco_table:
                 .str[:10]
             )
 
-            #df_lvl_1.to_csv(r"\\en-fs01\en-public\STP\\" + line + '.csv', sep=';')
-
-            return df_lvl_1
+            return final_df_by_line
         else:
 
             return pd.DataFrame([])
 
     # NOTE: эта функция размечает даты буквами смен
-    def __month_range(self, dt_start, dt_end):
+    def __month_range(self):
         """Приватная функция принимает даты ``date_start`` и ``date_end`` из ``__parsedata``\n
         и возвращает DataFrame следующего вида:
                 date_stop  shift letter
@@ -283,64 +309,47 @@ class up_puco_table:
             (прим.: "DADACDCDBCBCABAB")
         """
 
-        # здесь формируется список дат в формате (03.03.2021 ...) для текущего месяца
-        month_range = pd.date_range(start=dt_start, end=dt_end).astype(str).str[:10]
-        month_range = [day for day in month_range for _ in (0, 1)]
+        def make_list_of_dates(start_of_period, end_of_period, letter_pattern="None"):
+            """Эта функция возвращает df с расчитанным периодом дат, смен и букв смены"""
 
-        # список смен для df с актуальными датами
-        shift_list = [1 if shift % 2 == 0 else 2 for shift in range(len(month_range))]
+            period_pattern = pd.date_range(start=start_of_period, end=end_of_period)
+            period_pattern = [str(day)[:10] for day in period_pattern for _ in (0, 1)]
+            
+            shift_pattern = [1 if shift % 2 == 0 else 2 for shift in range(len(period_pattern))]
+            
+            letter_pattern = letter_pattern*(len(period_pattern)//len(letter_pattern)+1)
 
-        """Этот список переменных можно брать и использовать для прочих периодов, если порядок смен
-        будет отличаться"""
-        # 2020 год
-        datelist_20 = pd.date_range(start=date(2020, 1, 1), end=date(2020, 12, 31))
-        datelist_20 = [str(day)[:10] for day in datelist_20 for _ in (0, 1)]
-
-        shiftlist_20 = [1 if shift % 2 == 0 else 2 for shift in range(len(datelist_20))]
-
-        LETTER_20 = "DADACDCDBCBCABAB" * 94
-
-        df_2020 = pd.DataFrame(
-            list(zip(datelist_20, shiftlist_20, LETTER_20)),
+            return pd.DataFrame(
+            list(zip(period_pattern, shift_pattern, letter_pattern)),
             columns=["date_stop", "shift", "letter"],
         )
 
-        """Этот список переменных можно брать и использовать для прочих периодов, если порядок смен
-        будет отличаться"""
-        # 2021 год
-        datelist_21 = pd.date_range(start=date(2021, 1, 1), end=date(2022, 1, 1))
-        datelist_21 = [str(day)[:10] for day in datelist_21 for _ in (0, 1)]
-
-        LETTER_21 = "CBDCDCADADBABACB" * 94
-
-        shiftlist_21 = [1 if shift % 2 == 0 else 2 for shift in range(len(datelist_21))]
-
-        df_2021 = pd.DataFrame(
-            list(zip(datelist_21, shiftlist_21, LETTER_21)),
-            columns=["date_stop", "shift", "letter"],
-        )
+        #посчитать смены за весь период
+        period_2020 = make_list_of_dates(date(2020, 1, 1),date(2020, 12, 31),"DADACDCDBCBCABAB")
+        period_2021 = make_list_of_dates(date(2021, 1, 1),date(2022, 1, 1),"CBDCDCADADBABACB")
 
         # Сюда добавляются все периоды смен, в хронологическом порядке
-        full_date_df = pd.concat([df_2020, df_2021])
+        full_date_df = pd.concat([period_2020, period_2021])
 
-        # этот месяц
-        this_month_df = pd.DataFrame(
-            list(zip(month_range, shift_list)), columns=["date_stop", "shift"]
-        )
+        period_now = make_list_of_dates(self.date_start,self.date_end)
 
         # смерживание выбранного актуального периода с паттернами смен
-        df = pd.merge(
-            this_month_df,
+        result_dates_df = pd.merge(
+            period_now,
             full_date_df,
             how="inner",
             left_on=["date_stop", "shift"],
             right_on=["date_stop", "shift"],
+            suffixes=("_delete","")
         )
 
-        return df
+        del result_dates_df['letter_delete']
+
+        return result_dates_df
 
     # NOTE: функция оформления таблицы
-    def __line_green(self, val):
+    @staticmethod
+    def line_green(val):
         """Окрашивает выпуск линий больше 100% в зеленый"""
 
         return [
@@ -349,7 +358,8 @@ class up_puco_table:
         ]
 
     # NOTE: функция оформления таблицы
-    def __line_red(self, val):
+    @staticmethod
+    def line_red(val):
         """Окрашивает выпуск линий меньше 25% в красный"""
 
         return [
@@ -360,7 +370,8 @@ class up_puco_table:
         ]
 
     # NOTE: функция оформления таблицы
-    def __line_max(self, val):
+    @staticmethod
+    def line_max(val):
         """Выделяет смену с максимальным выпуском"""
 
         # Сначала создается массив значений, совпадающих с максимальным,
@@ -387,11 +398,9 @@ class up_puco_table:
         2   02.03.2021      1      A      0      0  241987      0  14939  197841      0  151382  193350
         """
 
-        # переопределение даты для запроса в df_lvl_0
-        dates = self.__parsedata()
 
         # получение df размеченных дней смерживания с датами выпуска
-        date_df = self.__month_range(dates["date_start"], dates["date_end"])
+        date_df = self.__month_range()
 
         df_list, line_list = [], []
 
@@ -403,8 +412,8 @@ class up_puco_table:
         for line in self.lines:
 
             """Поскольку начальный фрейм построен так, что каждое обращение в базу касается
-            только одной линии, то запросы, находящиеся в __get_df_lvl_0 должны выполняться в цикле"""
-            df = self.__get_df_lvl_0(line)
+            только одной линии, то запросы, находящиеся в __get_raw_df_by_line должны выполняться в цикле"""
+            df = self.__get_raw_df_by_line(line)
 
             if not df.empty:
 
@@ -456,7 +465,8 @@ class up_puco_table:
             return date_df
 
     # NOTE: функция возвращает список линий, находящихся в экземпляре
-    def __get_line_list(self, df):
+    @staticmethod
+    def __get_line_list(df):
         """Принимает фрейм из get_month_table и возвращает список линий, который в нем находится"""
 
         line_list = []
@@ -642,7 +652,7 @@ class up_puco_table:
                 df3.style.format({"absolute": "{:,}"})
                 .format({"average": "{:,}"})
                 .apply(
-                    self.__line_max, subset=pd.IndexSlice[df3.index[:-1], ["average"]]
+                    self.line_max, subset=pd.IndexSlice[df3.index[:-1], ["average"]]
                 )
                 .set_properties(
                     **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
@@ -717,9 +727,9 @@ class up_puco_table:
         # создание html и стилизация.
         html = (
             df3.style.format({line: "{:,}" for line in line_list})
-            .apply(self.__line_green, subset=pd.IndexSlice[df3.index[0:-1], line_list])
-            .apply(self.__line_red, subset=pd.IndexSlice[df3.index[0:-1], line_list])
-            .apply(self.__line_max, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .apply(self.line_green, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .apply(self.line_red, subset=pd.IndexSlice[df3.index[0:-1], line_list])
+            .apply(self.line_max, subset=pd.IndexSlice[df3.index[0:-1], line_list])
             .bar(subset=pd.IndexSlice[df3.index[0:-1], line_list], color="#d4d4d4")
             .set_properties(
                 **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0", "text-align":"center"}
@@ -735,10 +745,70 @@ class up_puco_table:
 
         return html
 
+    def camera_table(self):
+        
+
+        for line in self.lines:
+    
+
+            df_camera_lvl_0=pd.DataFrame(Camera.get_camera_info(self.date_start,self.date_end,line))
+
+            df_camera_lvl_0['defect_rate'] = df_camera_lvl_0['rejected'] /df_camera_lvl_0['total']
+            df_camera_lvl_0.fillna(0, inplace=True)
+
+        print(df_camera_lvl_0)
+
+        fig = fig = go.Figure()
+
+        for line_side in IBEA_CAMERA_MAP['LZ-01']:
+            df_camera_side = df_camera_lvl_0.loc[(df_camera_lvl_0['line_side'] == line_side)]
+            df_camera_side['defect_rate']=df_camera_side['defect_rate'].apply(lambda x: 0.1 if x>0.1 else x)
+            df_camera_side.sort_values(by='date_now_sys', inplace=True)
+            fig.add_trace(go.Scatter(x=df_camera_side['date_now_sys'], y=df_camera_side['defect_rate']))
+
+
+        fig.show()
+
+    def camera_plot(self):
+        pass
+
+    def line_shift_report(self):
+
+
+        codes_df = up_puco_code.get_puco_codes_description()
+
+
+        for line in self.lines:
+            df3 = self.__get_raw_df_by_line(line)
+            df3['seconds'] = df3['minutes'].dt.seconds//60
+            df3 = df3.loc[(df3['date_stop']>=self.date_start_with_hours) & (df3['date_stop']<=self.date_end_with_hours)]
+
+
+            df3_pivot_table = pd.pivot_table(df3,index=[ 'date','shift','puco_code'], values = ['seconds'],  aggfunc='sum').reset_index()
+
+            df3_with_description = pd.merge(
+                df3_pivot_table,
+                codes_df,
+                how='left',
+                left_on = 'puco_code',
+                right_on = 'puco_code',
+            )
+
+            print(df3_with_description)
+            fig = go.Figure()
+            fig.add_trace(go.Pie(labels=df3_with_description['name_ru'], values=df3_with_description['seconds'], hole=.3))
+            fig.update_traces(textinfo='label+value')
+            fig.update_layout(annotations=[
+                dict(text=line, x=0.5, y=0.5, font_size=20, showarrow=False),
+            ])
+        fig.show()
+        
 
 if __name__ == "__main__":
 
-    rep = up_puco_table()
+    rep = up_puco_table(lines=['LZ-1'])
 
-    print(rep.__parsedata())
-    print(rep.get_month_table())
+    rep.camera_table()
+
+    #print(rep.__parsedata())
+    #print(rep.get_month_table())

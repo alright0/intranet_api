@@ -12,6 +12,20 @@ from Statistics.logic.logic import *
 
 site = Blueprint("site", __name__)
 
+
+@site.route("/daily_report", methods=["GET"])
+def daily_report():
+
+    last_day_lines = up_puco_table(period="day", lines=["LL-01"])
+
+    print(last_day_lines.__repr__())
+    # df3 = last_day_lines.get_month_table()
+
+    last_day_line_graph = last_day_lines.line_shift_report()
+
+    return render_template("daily_report.html", lines=LINES)
+
+
 # домашняя страница
 @site.route("/", methods=["GET"])
 def index():
@@ -28,12 +42,15 @@ def index():
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
 
 
+# @login_required
 @site.route("/test", methods=["get"])
-@login_required
 def test():
 
-    if current_user.accesslevel < 4:
-        return redirect(url_for("site.access_denied"))
+    info = up_puco_table(lines=["LZ-1"])
+    df = info.camera_table()
+
+    # if current_user.accesslevel < 4:
+    #    return redirect(url_for("site.access_denied"))
     return render_template("base.html")
 
 
@@ -59,6 +76,9 @@ def production_plan_staff():
 def production_plan():
 
     info = up_puco_table()
+    info.__repr__()
+
+    print(info.date_start, info.date_end_with_hours)
 
     df = info.get_month_table()
 

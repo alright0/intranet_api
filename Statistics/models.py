@@ -2,6 +2,7 @@ from Statistics import db, Base_cam, Base_fc, cam_engine, fc_engine, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import cast
 from flask_login import UserMixin
+import pandas as pd
 
 
 @login.user_loader
@@ -71,6 +72,23 @@ class Camera(Base_cam):
     last_part = db.Column(db.DateTime)
     total = db.Column(db.Integer)
     rejected = db.Column(db.Integer)
+
+    @classmethod
+    def get_camera_info(self, dt1, dt2, line):
+
+        camera_query = self.query.with_entities(
+            self.line,
+            self.line_side,
+            self.date_now,
+            self.date_now_sys,
+            self.job,
+            # self.start_time,
+            # self.last_part,
+            self.total,
+            self.rejected,
+        ).filter(self.date_now_sys >= dt1, self.date_now_sys <= dt2, self.line == line)
+
+        return camera_query
 
 
 class up_puco_export(Base_fc):
@@ -274,6 +292,25 @@ class up_puco_code(Base_fc):
     group_eng = db.Column(db.String)
     group_ru = db.Column(db.String)
     id_line = db.Column(db.String)
+
+    @classmethod
+    def get_puco_codes_description(self):
+
+        columns = ["puco_code", "name_ru"]
+
+        # сюда можно добавить кастомные коды
+        additional_codes = pd.DataFrame([["RUN", "Выпуск"]], columns=columns)
+
+        # здесь создается список кодов из базы
+        puco_codes_description = pd.DataFrame(
+            self.query.with_entities(self.code, self.name_ru).all(), columns=columns
+        )
+
+        puco_codes_description = puco_codes_description.append(
+            additional_codes, ignore_index=True
+        )
+
+        return puco_codes_description
 
 
 class fc_produkcja(Base_fc):

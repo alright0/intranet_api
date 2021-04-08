@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+
+<body>
+
+
+    <main>
+        {% block content %}
+        <div class="production_plan" style="grid-template-columns: repeat(1, minmax(350px,1fr)); ">
+            <div class="production_plan_graphs" style="margin:auto;">
+                {% for line in lines %}
+                <div class="production_plan_stdblock">
+
+                </div>
+                <div class="production_plan_stdblock">
+
+                </div>
+                <div class="production_plan_stdblock">
+
+                </div>
+                <div class="production_plan_stdblock">
+
+                </div>
+
+
+
+
+                {% endfor %}
+            </div>
+        </div>
+
+        {% endblock %}
+
+    </main>>
