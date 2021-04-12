@@ -18,7 +18,7 @@ from Statistics.schemas import CameraSchema
 
 # TODO: разделись методы на таблицы и графики
 class up_puco_table:
-    """Класс возвращает представления таблицы up_puco_export по датам и линиям.\n
+    """Класс возвращает представления таблицы ``up_puco_export`` по датам и линиям.\n
     входные параметры:\n
     ``date`` - datetime - дата, за которую необходимо получить отчет. \n
         По умолчанию идет предыщуший день или текущий месяц\n
@@ -39,7 +39,7 @@ class up_puco_table:
         self.date = date
         self.period = period
         self.delta = delta
-        self.lines = lines
+        self.lines = self.__get_valid_lines(lines)
 
         dates = self.__parsedata()
 
@@ -53,7 +53,10 @@ class up_puco_table:
 
     
 
+    def __repr__(self):
 
+        return (f"Информация за период с {datetime.strftime(self.date_start, '%Y-%m-%d')} " +
+        f"по {datetime.strftime(self.date_end, '%Y-%m-%d')} по работе линий:\n{self.lines}")
         
     # NOTE: парсинг периодов входящей даты
     def __parsedata(self):
@@ -100,7 +103,7 @@ class up_puco_table:
         elif self.period == "day":
 
             # конечная дата + количество дней из переменной delta.
-            dt_end = dt_start + relativedelta(days=self.delta - 1)
+            dt_end = dt_start + (relativedelta(days=self.delta - 1 if self.delta >1 else 1))
 
         # начальная и конечная даты с указанием часов
         date_start_with_hours = dt_start + timedelta(hours=8)
@@ -123,10 +126,59 @@ class up_puco_table:
             "date_end_with_hours":date_end_with_hours,
         }
 
-    def __repr__(self):
+    # NOTE: функция возвращает список линий, находящихся в экземпляре
+    def __get_valid_lines(self, lines):
+        """Принимает фрейм из get_month_table и возвращает список линий, который в нем находится"""
 
-        return (f"Информация за период с {datetime.strftime(self.date_start, '%Y-%m-%d')} " +
-        f"по {datetime.strftime(self.date_end, '%Y-%m-%d')} по работе линий:\n{self.lines}")
+        valid_lines = []
+
+        for line in lines:
+            if line in LINES:
+                valid_lines.append(line)
+
+        valid_lines.sort()
+
+        return valid_lines
+
+    # NOTE: функция оформления таблицы
+    @staticmethod
+    def line_red(val):
+        """Окрашивает выпуск линий меньше 25% в красный"""
+
+        return [
+            "color: red; font-weight:bold"
+            if v < LINE_OUTPUT[val.name] / 4 and v > 0
+            else ""
+            for v in val
+        ]
+
+    # NOTE: функция оформления таблицы
+    @staticmethod
+    def line_max(val):
+        """Выделяет смену с максимальным выпуском"""
+
+        # Сначала создается массив значений, совпадающих с максимальным,
+        # затем выделяются ненулевые значения, чтобы линии в начале месяца
+        # не светили желтым. Далее эти значения сравниваются
+        is_max = val == val.max()
+        is_null = [v for v in val]
+
+        real_max = is_max & is_null
+
+        return [
+            "background-color: yellow; font-weight:bold; color: blue;" if v else ""
+            for v in real_max
+        ]
+
+    # NOTE: функция оформления таблицы
+    @staticmethod
+    def line_green(val):
+        """Окрашивает выпуск линий больше 100% в зеленый"""
+
+        return [
+            "color: green; font-weight:bold" if v > LINE_OUTPUT[val.name] else ""
+            for v in val
+        ]
 
     # NOTE: на основе этого фрейма строятся все остальные
     def __get_raw_df_by_line(self, line):
@@ -329,14 +381,14 @@ class up_puco_table:
         period_2021 = make_list_of_dates(date(2021, 1, 1),date(2022, 1, 1),"CBDCDCADADBABACB")
 
         # Сюда добавляются все периоды смен, в хронологическом порядке
-        full_date_df = pd.concat([period_2020, period_2021])
+        period_patterned = pd.concat([period_2020, period_2021])
 
         period_now = make_list_of_dates(self.date_start,self.date_end)
 
         # смерживание выбранного актуального периода с паттернами смен
         result_dates_df = pd.merge(
             period_now,
-            full_date_df,
+            period_patterned,
             how="inner",
             left_on=["date_stop", "shift"],
             right_on=["date_stop", "shift"],
@@ -346,46 +398,6 @@ class up_puco_table:
         del result_dates_df['letter_delete']
 
         return result_dates_df
-
-    # NOTE: функция оформления таблицы
-    @staticmethod
-    def line_green(val):
-        """Окрашивает выпуск линий больше 100% в зеленый"""
-
-        return [
-            "color: green; font-weight:bold" if v > LINE_OUTPUT[val.name] else ""
-            for v in val
-        ]
-
-    # NOTE: функция оформления таблицы
-    @staticmethod
-    def line_red(val):
-        """Окрашивает выпуск линий меньше 25% в красный"""
-
-        return [
-            "color: red; font-weight:bold"
-            if v < LINE_OUTPUT[val.name] / 4 and v > 0
-            else ""
-            for v in val
-        ]
-
-    # NOTE: функция оформления таблицы
-    @staticmethod
-    def line_max(val):
-        """Выделяет смену с максимальным выпуском"""
-
-        # Сначала создается массив значений, совпадающих с максимальным,
-        # затем выделяются ненулевые значения, чтобы линии в начале месяца
-        # не светили желтым. Далее эти значения сравниваются
-        is_max = val == val.max()
-        is_null = [v for v in val]
-
-        real_max = is_max & is_null
-
-        return [
-            "background-color: yellow; font-weight:bold; color: blue;" if v else ""
-            for v in real_max
-        ]
 
     # NOTE: Эта функция создает таблицу со списком дат и линий
     def get_month_table(self):
@@ -398,156 +410,141 @@ class up_puco_table:
         2   02.03.2021      1      A      0      0  241987      0  14939  197841      0  151382  193350
         """
 
-
         # получение df размеченных дней смерживания с датами выпуска
-        date_df = self.__month_range()
+        patterned_date_df = self.__month_range()
 
-        df_list, line_list = [], []
 
         # Фреймы здесь необходимо создать, на случай, если список линий будет пустым
         # и они не будут добавлены в цикле
-        df, df2 = pd.DataFrame([]), pd.DataFrame([])
+        raw_df, agregated_lines_df = pd.DataFrame([]), pd.DataFrame([])
+        list_of_lines_output, selected_lines = [], []
 
         # создание таблицы с указанными линими
         for line in self.lines:
 
             """Поскольку начальный фрейм построен так, что каждое обращение в базу касается
             только одной линии, то запросы, находящиеся в __get_raw_df_by_line должны выполняться в цикле"""
-            df = self.__get_raw_df_by_line(line)
+            raw_df = self.__get_raw_df_by_line(line)
 
-            if not df.empty:
+            if not raw_df.empty:
 
-                df[line] = df["sheets"]
-                del df["sheets"]
+                raw_df[line] = raw_df["sheets"]
+                del raw_df["sheets"]
 
-                df_list.append(df)
-                df2 = pd.concat(df_list)
+                list_of_lines_output.append(raw_df)
 
-                line_list.append(line)
+                agregated_lines_df = pd.concat(list_of_lines_output)
+
+                selected_lines.append(line)
 
         # если пришел пустой список линий, то назад вернется только список дат, смен и букв
-        if not df2.empty:
+        if not agregated_lines_df.empty:
 
             # превращение подробной таблицы в таблицу с суммарным выпуском по датам
-            df2 = pd.pivot_table(
-                df2,
-                index=[df2["date"], "shift"],
-                values=line_list,
+            agregated_lines_df = pd.pivot_table(
+                agregated_lines_df,
+                index=[agregated_lines_df["date"], "shift"],
+                values=selected_lines,
                 aggfunc="sum",
             ).reset_index()
 
-            df2["date"] = df2["date"].astype(str)
+            agregated_lines_df["date"] = agregated_lines_df["date"].astype(str)
 
             # добавление букв смены
-            df3 = pd.merge(
-                date_df,
-                df2,
+            ready_date_shift_letter_df = pd.merge(
+                patterned_date_df,
+                agregated_lines_df,
                 how="left",
                 left_on=["date_stop", "shift"],
                 right_on=["date", "shift"],
             ).fillna(0)
 
-            del df3["date"]
+            del ready_date_shift_letter_df["date"]
 
             # Преобразование показателей выпуска линий в int из float
-            df3[line_list] = df3[line_list].astype(int)
+            ready_date_shift_letter_df[selected_lines] = ready_date_shift_letter_df[selected_lines].astype(int)
 
             # даты из формата 2021/01/02 в 02.01.2021
-            df3["date_stop"] = df3["date_stop"].apply(
+            ready_date_shift_letter_df["date_stop"] = ready_date_shift_letter_df["date_stop"].apply(
                 lambda x: datetime.strftime(
                     datetime.strptime(x, "%Y-%m-%d"), "%d.%m.%Y"
                 )
             )
 
-            return df3
+            return ready_date_shift_letter_df
 
         else:
-            return date_df
+            return patterned_date_df
 
-    # NOTE: функция возвращает список линий, находящихся в экземпляре
-    @staticmethod
-    def __get_line_list(df):
-        """Принимает фрейм из get_month_table и возвращает список линий, который в нем находится"""
-
-        line_list = []
-
-        for line in LINES:
-            if line in list(df.columns.values):
-                line_list.append(line)
-
-        line_list.sort()
-
-        return line_list
 
     # NOTE: Строит bar график линий c подсветкой выработки
-    def subplots(self, df2, style='original'):
+    def subplots(self, agregated_lines_df, style='original'):
         """Эту функцию можно вызвать, чтобы построить график линий за даты,
         указанные в экземпляре классa. Функция принимает на вход фрейм экземпляра и
         возвращает json для построения в plotly.js
         """
 
-        df3 = df2.copy()
+        agregated_lines_df = agregated_lines_df.copy()
 
-        line_list = self.__get_line_list(df3)
+        #valid_lines = self.__get_valid_lines(agregated_lines_df)
 
         # первая и последняя даты для заголовка графика
-        date_start_str = df3['date_stop'].iloc[0]
-        date_end_str = df3['date_stop'].iloc[-1]
+        date_start_str = agregated_lines_df['date_stop'].iloc[0]
+        date_end_str = agregated_lines_df['date_stop'].iloc[-1]
 
-        df3 = df3.sort_index().sort_values("letter", kind="mergesort")
+        agregated_lines_df = agregated_lines_df.sort_index().sort_values("letter", kind="mergesort")
 
         # расчет количества столбцов графиков, по умолчанию, если графиков больше 5, то
         # перейти на следующую строку
-        if len(line_list) >= 5:
+        if len(self.lines) >= 5:
             cols = 5
-        elif len(line_list) == 0:
+        elif len(self.lines) == 0:
             cols = 1
         else:
-            cols = len(line_list)
+            cols = len(self.lines)
 
         # создание тела графика.
-        fig2 = make_subplots(
+        subplot_fig = make_subplots(
             cols=cols,
-            rows=math.ceil(math.ceil(len(line_list) / 5)) if len(line_list) > 0 else 1,
+            rows=math.ceil(math.ceil(len(self.lines) / 5)) if len(self.lines) > 0 else 1,
             start_cell="bottom-left",
-            subplot_titles=line_list,
+            subplot_titles=self.lines,
             vertical_spacing=0.15,
             x_title="Смена",
             y_title="Выпуск",
         )
 
         # наполнение тела графиками.
-        for i in range(len(line_list)):
+        for i in range(len(self.lines)):
 
             # позиционирование графика в subplots
             row=math.ceil((i + 1) / 5)
             col=math.ceil(i - 5 * (i // 5) + 1)
 
-
             # раскрашивание в зависимости от выработки
             color_list = []
-            color_list = df3[line_list[i]].apply(
+            color_list = agregated_lines_df[self.lines[i]].apply(
                 lambda x: "green"
-                if x > LINE_OUTPUT[line_list[i]]
+                if x > LINE_OUTPUT[self.lines[i]]
                 else "firebrick"
-                if x < LINE_OUTPUT[line_list[i]] / 25
+                if x < LINE_OUTPUT[self.lines[i]] / 25 
                 else "#003882"
             )
 
-            
-            fig2.add_trace(
+
+            subplot_fig.add_trace(
                 go.Bar(
-                    x=df3['letter'],
-                    y=df3[line_list[i]],
-                    name=line_list[i],
+                    x=agregated_lines_df['letter'],
+                    y=agregated_lines_df[self.lines[i]],
+                    name=self.lines[i],
                     marker_color=color_list,
                     hoverinfo="text",
                     hovertext="Дата: "
-                    + df3["date_stop"].astype(str)
+                    + agregated_lines_df["date_stop"].astype(str)
                     + "<br>Смена: "
-                    + df3["shift"].astype(str)
+                    + agregated_lines_df["shift"].astype(str)
                     + "<br>Выпуск: "
-                    + df3[line_list[i]].astype(str),
+                    + agregated_lines_df[self.lines[i]].astype(str),
                 ),
                 row=row,
                 col=col,
@@ -555,19 +552,23 @@ class up_puco_table:
         
             
             # обновление осей - добавление количества смен
-            xaxis_tick_df = df3.loc[df3[line_list[i]]>0]
-            xaxis_tick_df = pd.pivot_table(xaxis_tick_df,index=[xaxis_tick_df["letter"]],values=[line_list[i]],aggfunc=lambda x:len(x>0),).reset_index()
+            xaxis_tick_df = agregated_lines_df.loc[agregated_lines_df[self.lines[i]]>0]
+            xaxis_tick_df = pd.pivot_table(
+                xaxis_tick_df, 
+                index=[xaxis_tick_df["letter"]], 
+                values=[self.lines[i]], 
+                aggfunc=lambda x:len(x>0)).reset_index()
 
             if not xaxis_tick_df.empty:
-                fig2.update_xaxes(
-                    ticktext=xaxis_tick_df['letter'] + ' (' + xaxis_tick_df[line_list[i]].astype(str) + ")", 
-                    tickvals=xaxis_tick_df['letter'],
+                subplot_fig.update_xaxes(
+                    ticktext=xaxis_tick_df['letter'] + ' (' + xaxis_tick_df[self.lines[i]].astype(str) + ")", 
+                    tickvals=xaxis_tick_df['letter'], 
                     row=row,
                     col=col,)
 
 
         # дополнительное оформление
-        fig2.update_layout(
+        subplot_fig.update_layout(
             margin=dict(t=70, l=70, b=70, r=30),
             title_text="<b>Выпуск линий по сменам за период " + date_start_str + " - " + date_end_str + "</b>",
             title_font_size=16,
@@ -580,13 +581,13 @@ class up_puco_table:
         )
 
         # преобразование графика в json и последующее его построение в plotly.js в templates
-        plot_json = json.dumps(fig2, cls=PlotlyJSONEncoder)
+        plot_json = json.dumps(subplot_fig, cls=PlotlyJSONEncoder)
 
         return plot_json
 
     # NOTE: таблица с итогами по буквам смен
-    def date_table_average(self, df2):
-        """ Функция принимает фрейм из ``get_line_list`` и возвращает словарь, где ключ - название линии,
+    def date_table_average(self, agregated_lines_df):
+        """ Функция принимает фрейм из ``get_valid_lines`` и возвращает словарь, где ключ - название линии,
         а значение - отрендеренный html, содержащий таблицу информацию по линии: буквы смены, 
         количество смен, среднюю выработку и абсолютную выработку.
         Имеет следующий вид:
@@ -598,61 +599,57 @@ class up_puco_table:
             ИТОГО	47	     37,826	 1,772,781 
         """
 
-        df3 = pd.DataFrame([], columns=['date_stop','shift', 'letter', 'absolute'])
+        line_to_html_dict = dict()
 
-        line_list = self.__get_line_list(df2)
+        for line in self.lines:
 
-        line_dict = dict()
+            average_table_df = pd.DataFrame([])
 
-        for line in line_list:
-
-            df3 = pd.DataFrame([])
-
-            df3[['date_stop', 'shift', 'letter', 'absolute']] = df2[['date_stop', 'shift', 'letter', line]]
+            average_table_df[['date_stop', 'shift', 'letter', 'absolute']] = agregated_lines_df[['date_stop', 'shift', 'letter', line]]
 
             # посчитать смену, если выпуск по ней больше 25% от нормы выработки
-            df3["shift"] = df3['absolute'].apply(
+            average_table_df["shift"] = average_table_df['absolute'].apply(
                 lambda x: 1 if x > LINE_OUTPUT[line] / 4 else 0
             )
 
             # здесь формируется основная таблица
-            df3 = pd.pivot_table(
-                df3, index=[df3["letter"]], values=['shift', 'absolute'], aggfunc='sum'
+            average_table_df = pd.pivot_table(
+                average_table_df, index=[average_table_df["letter"]], values=['shift', 'absolute'], aggfunc='sum'
                 ).reset_index()
 
             # расчет среднего
-            df3["average"] = df3['absolute'] / df3["shift"]
+            average_table_df["average"] = average_table_df['absolute'] / average_table_df["shift"]
 
-            df3.replace([np.inf, -np.inf], np.nan, inplace=True)
+            average_table_df.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-            df3["average"].fillna(0, inplace=True)
+            average_table_df["average"].fillna(0, inplace=True)
 
-            df3=df3[['letter', 'shift', 'average', 'absolute']]
+            average_table_df=average_table_df[['letter', 'shift', 'average', 'absolute']]
 
             # добавление строки итогов
-            df3 = df3.append(
+            average_table_df = average_table_df.append(
                 pd.DataFrame(
                     [
                         [
                             "TOTAL",
-                            df3["shift"].sum(),
-                            df3["average"].mean(),
-                            df3['absolute'].sum(),
+                            average_table_df["shift"].sum(),
+                            average_table_df["average"].mean(),
+                            average_table_df['absolute'].sum(),
                         ]
                     ],
-                    columns=list(df3.columns.values),
+                    columns=list(average_table_df.columns.values),
                 ),
                 ignore_index=True,
             )
 
-            df3[['absolute', "average"]] = df3[['absolute', "average"]].astype(int)
+            average_table_df[['absolute', "average"]] = average_table_df[['absolute', "average"]].astype(int)
             
             # стили
             html = (
-                df3.style.format({"absolute": "{:,}"})
+                average_table_df.style.format({"absolute": "{:,}"})
                 .format({"average": "{:,}"})
                 .apply(
-                    self.line_max, subset=pd.IndexSlice[df3.index[:-1], ["average"]]
+                    self.line_max, subset=pd.IndexSlice[average_table_df.index[:-1], ["average"]]
                 )
                 .set_properties(
                     **{"text-align": "right", "border-right": "1px solid #e0e0e0"},
@@ -670,7 +667,7 @@ class up_puco_table:
                 )
                 .set_properties(
                     **{"font-weight": "600", "border-bottom": "none"},
-                    subset=pd.IndexSlice[df3.index[-1]],
+                    subset=pd.IndexSlice[average_table_df.index[-1]],
                 )
                 .set_properties(
                     **{"text-align": "center"},
@@ -680,12 +677,12 @@ class up_puco_table:
                 .render()
             )
 
-            line_dict[line] = html
+            line_to_html_dict[line] = html
 
-        return line_dict
+        return line_to_html_dict
 
     # NOTE: таблица с деталицацией по датам и сменам. С итогами
-    def date_table(self, df2):
+    def date_table(self, agregated_lines_df):
         """Эта функция принимает фрейм из ``get_month_table`` и возвращает таблицу\n
         в виде отрендеренного html, который необходимо встроить в страницу\n 
         сформированную по датам и сменам, с буквами смен и выпуском линий.\n
@@ -698,46 +695,44 @@ class up_puco_table:
 
         """
 
-        df3 = df2.copy()
-
-        line_list = self.__get_line_list(df3)
+        agregated_lines_df = agregated_lines_df.copy()
         
         # переименование для заголовков на русском
-        df3.rename(
+        agregated_lines_df.rename(
             columns={"date_stop": "date"},
             inplace=True,
         )
 
         # строка итогов
-        df3 = df3.append(
+        agregated_lines_df = agregated_lines_df.append(
             pd.DataFrame(
                 [
                     [
-                        "",
+                        "Shifts: {}".format(agregated_lines_df['date'].count()),
                         "",
                         "TOTAL",
-                        *[df3[tot].sum() for tot in line_list],
+                        *[agregated_lines_df[tot].sum() for tot in self.lines],
                     ]
                 ],
-                columns=list(df3.columns.values),
+                columns=list(agregated_lines_df.columns.values),
             ),
             ignore_index=True,
         )
 
         # создание html и стилизация.
         html = (
-            df3.style.format({line: "{:,}" for line in line_list})
-            .apply(self.line_green, subset=pd.IndexSlice[df3.index[0:-1], line_list])
-            .apply(self.line_red, subset=pd.IndexSlice[df3.index[0:-1], line_list])
-            .apply(self.line_max, subset=pd.IndexSlice[df3.index[0:-1], line_list])
-            .bar(subset=pd.IndexSlice[df3.index[0:-1], line_list], color="#d4d4d4")
+            agregated_lines_df.style.format({line: "{:,}" for line in self.lines})
+            .apply(self.line_green, subset=pd.IndexSlice[agregated_lines_df.index[0:-1], self.lines])
+            .apply(self.line_red, subset=pd.IndexSlice[agregated_lines_df.index[0:-1], self.lines])
+            .apply(self.line_max, subset=pd.IndexSlice[agregated_lines_df.index[0:-1], self.lines])
+            .bar(subset=pd.IndexSlice[agregated_lines_df.index[0:-1], self.lines], color="#d4d4d4")
             .set_properties(
                 **{"padding": "0 5px 0 5px", "border-bottom": "1px solid #e0e0e0", "text-align":"center"}
             )
-            .set_properties(**{"text-align": "right"}, subset=line_list)
+            .set_properties(**{"text-align": "right"}, subset=self.lines)
             .set_properties(
                 **{"font-weight": "600", "border-bottom": "none"},
-                subset=pd.IndexSlice[df3.index[-1]],
+                subset=pd.IndexSlice[agregated_lines_df.index[-1]],
             )
             .hide_index()
             .render()
@@ -745,64 +740,123 @@ class up_puco_table:
 
         return html
 
-    def camera_table(self):
-        
+    def camera_defrate_graph(self):
+        """График выпуска камеры. Принимает запрос из ``ibea_agregate`` на ``EN-VM01``\n
+        и возвращает фрейм вида:\n
+            line  line_side            date_now        date_now_sys    job  total  rejected  defect_rate
+            LZ-01   LZ-01 B 2021-04-10 13:11:08 2021-04-10 13:11:20  10182  65898      1234     0.018726
+            LZ-01   LZ-01 A 2021-04-10 13:11:08 2021-04-10 13:11:20  10182  65898       577     0.008756
+            LZ-01   LZ-01 B 2021-04-10 13:12:08 2021-04-10 13:12:20  10182  66125      1237     0.018707
+        """
 
+        # запрос под каждую камеру и добавление поля брака
         for line in self.lines:
     
+            df_camera_lvl_0 = pd.DataFrame([])
+            camera_defrate_fig = go.Figure()
 
-            df_camera_lvl_0=pd.DataFrame(Camera.get_camera_info(self.date_start,self.date_end,line))
+            # основная работа начинается, если линия есть в списке линий для запроса в камеры
+            if line in IBEA_CAMERA_MAP:
 
-            df_camera_lvl_0['defect_rate'] = df_camera_lvl_0['rejected'] /df_camera_lvl_0['total']
-            df_camera_lvl_0.fillna(0, inplace=True)
+                df_camera_lvl_0 = pd.DataFrame(
+                    Camera.get_camera_info(
+                        self.date_start_with_hours, 
+                        self.date_end_with_hours, 
+                        line
+                    )
+                )
 
-        print(df_camera_lvl_0)
+                # если фрейм пустой - поставить график-заглушку "Нет информации"
+                if not df_camera_lvl_0.empty:
 
-        fig = fig = go.Figure()
+                    df_camera_lvl_0["defect_rate"] = (
+                        df_camera_lvl_0["rejected"] / df_camera_lvl_0["total"]
+                    )
+                    df_camera_lvl_0.fillna(0, inplace=True)
 
-        for line_side in IBEA_CAMERA_MAP['LZ-01']:
-            df_camera_side = df_camera_lvl_0.loc[(df_camera_lvl_0['line_side'] == line_side)]
-            df_camera_side['defect_rate']=df_camera_side['defect_rate'].apply(lambda x: 0.1 if x>0.1 else x)
-            df_camera_side.sort_values(by='date_now_sys', inplace=True)
-            fig.add_trace(go.Scatter(x=df_camera_side['date_now_sys'], y=df_camera_side['defect_rate']))
+                    # добавить все камеры, принадлежащие линии на один график
+                    for line_side in IBEA_CAMERA_MAP[line]:
+                        df_camera_side = df_camera_lvl_0.loc[
+                            (df_camera_lvl_0["line_side"] == line_side)
+                        ]
 
+                        df_camera_side["defect_rate"] = df_camera_side["defect_rate"].apply(
+                            lambda x: 0.1 if x > 0.1 else x
+                        )
 
-        fig.show()
+                        df_camera_side = df_camera_side.sort_values(by="date_now_sys")
 
-    def camera_plot(self):
-        pass
+                        camera_defrate_fig.add_trace(
+                            go.Scatter(
+                                x=df_camera_side["date_now_sys"],
+                                y=df_camera_side["defect_rate"],
+                                name=line_side,
+                            )
+                        )
+
+                # заглушка
+                else:
+
+                    camera_defrate_fig.update_layout(
+                        annotations=[
+                            dict(
+                                text=f"Нет информации",
+                                xref="paper",
+                                yref="paper",
+                                x=0.5,
+                                y=0.5,
+                                font_size=20,
+                                showarrow=False,
+                            )
+                        ]
+                    )
+
+                camera_defrate_fig.update_layout(title=line)
+
+                #camera_defrate_fig.show()
 
     def line_shift_report(self):
+        """возвращает круговую диаграмму с описанием временных затрат на линии и выпуска
+        """
 
-
-        codes_df = up_puco_code.get_puco_codes_description()
-
+        codes_description_df = up_puco_code.get_puco_codes_description()
 
         for line in self.lines:
             df3 = self.__get_raw_df_by_line(line)
-            df3['seconds'] = df3['minutes'].dt.seconds//60
-            df3 = df3.loc[(df3['date_stop']>=self.date_start_with_hours) & (df3['date_stop']<=self.date_end_with_hours)]
+            df3["seconds"] = df3["minutes"].dt.seconds // 60
+            df3 = df3.loc[
+                (df3["date_stop"] >= self.date_start_with_hours)
+                & (df3["date_stop"] <= self.date_end_with_hours)
+            ]
 
-
-            df3_pivot_table = pd.pivot_table(df3,index=[ 'date','shift','puco_code'], values = ['seconds'],  aggfunc='sum').reset_index()
+            df3_pivot_table = pd.pivot_table(
+                df3, index=["date", "shift", "puco_code"], values=["seconds"], aggfunc="sum"
+            ).reset_index()
 
             df3_with_description = pd.merge(
                 df3_pivot_table,
-                codes_df,
-                how='left',
-                left_on = 'puco_code',
-                right_on = 'puco_code',
+                codes_description_df,
+                how="left",
+                left_on="puco_code",
+                right_on="puco_code",
             )
 
-            print(df3_with_description)
             fig = go.Figure()
-            fig.add_trace(go.Pie(labels=df3_with_description['name_ru'], values=df3_with_description['seconds'], hole=.3))
-            fig.update_traces(textinfo='label+value')
-            fig.update_layout(annotations=[
-                dict(text=line, x=0.5, y=0.5, font_size=20, showarrow=False),
-            ])
+            fig.add_trace(
+                go.Pie(
+                    labels=df3_with_description["name_ru"],
+                    values=df3_with_description["seconds"],
+                    hole=0.3,
+                )
+            )
+            fig.update_traces(textinfo="label+value")
+            fig.update_layout(
+                annotations=[
+                    dict(text=line, x=0.5, y=0.5, font_size=20, showarrow=False),
+                ]
+            )
         fig.show()
-        
+
 
 if __name__ == "__main__":
 

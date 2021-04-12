@@ -6,27 +6,51 @@
 
     <main>
         {% block content %}
-        <div class="production_plan" style="grid-template-columns: repeat(1, minmax(350px,1fr)); ">
-            <div class="production_plan_graphs" style="margin:auto;">
-                {% for line in lines %}
-                <div class="production_plan_stdblock">
+        <div class="production_plan" style="display:block;">
+            {% for line in lines %}
 
+            <div class="production_plan_graphs" style="margin:auto; ">
+                <h1 style="text-align: center;">{{line}}</h1>
+
+                {% for i in range(1,3) %}
+                <div class="production_plan_graphs" style="margin:auto; ">
+                    <p>Смена {{i}}</p>
+                    <div class="production_plan_stdblock">
+                        <div class="infoboard_block_section">
+                            <p>Оператор</p>
+                        </div>
+                        <div class="infoboard_block_section">
+                            <p>День</p>
+                        </div>
+                        <div class="infoboard_block_section">
+                            <p>Ночь</p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="production_plan_stdblock">
+
+                    </div>
+                    <div class="blockbox" style="height: 100%;">
+                        <div class="production_plan_stdblock">
+                            <img width="400px" src="../static/img/pie.PNG">
+                        </div>
+                    </div>
+                    <div class="blockbox">
+                        <div class="production_plan_stdblock">
+                            <img width="400px" src="../static/img/def.PNG">
+                        </div>
+                        <div class="production_plan_stdblock">
+                            <img width="400px" src="../static/img/def.PNG">
+                        </div>
+                    </div>
                 </div>
-                <div class="production_plan_stdblock">
-
-                </div>
-                <div class="production_plan_stdblock">
-
-                </div>
-                <div class="production_plan_stdblock">
-
-                </div>
-
-
 
 
                 {% endfor %}
             </div>
+            {% endfor %}
         </div>
 
         {% endblock %}

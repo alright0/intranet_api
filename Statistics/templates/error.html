@@ -9,9 +9,9 @@
 <body>
 
     {% block content %}
-    <div class="content">
-        <H1>404!</H1>
-        <p>Страница, кoторую вы пытаетесь найти, не существует!</p>
+    <div class="logo_background">
+        <h1>{{error.code}}</h1>
+        <p>{{error.description}}</p>
     </div>
     {% endblock %}
 </body>

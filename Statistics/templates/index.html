@@ -31,12 +31,12 @@
 
 
                 <!--  Линия  -->
-                <div class="infoboard_block_header">
+                <div class="infoboard_block_section">
                     <p style="font-size: 18pt; font-weight: 400;">{{ line }}</p>
                 </div>
 
                 <!--  статус линии: если статус линии равен STOP|RUN - размер шрифта 14, иначе стандартный  -->
-                <div class="infoboard_block_header">
+                <div class="infoboard_block_section">
 
                     {% if status == 'STOP' or status == 'RUN'%}
                     <p style="font-size: 14pt;">{{ status }}</p>
@@ -63,12 +63,12 @@
                 {% set output = lines_dict[line]['output'] %}
 
                 <!--  оператор линии:  -->
-                <div class="infoboard_block_header">
+                <div class="infoboard_block_section">
                     <p style="font-size: 10pt;">{{ operator }}</p>
                 </div>
 
                 <!--  номер заказа и его описание  -->
-                <div class="infoboard_block_header">
+                <div class="infoboard_block_section">
                     <p><b>{{order}}</b>: {{ order_description }}</p>
                 </div>
 
@@ -135,7 +135,7 @@
 
                     <!--  Если количество камер = 1, то поместить в контейнер другого типа  -->
                     {% elif camera_defrate|count == 1 %}
-                    <div class="infoboard_block_header" style="box-shadow: none;">
+                    <div class="infoboard_block_section" style="box-shadow: none;">
 
                         {% if camera_defrate[0] > 1 %}
                         <p style="color:#c05e5e;"><b>{{ "{:.2f}%".format(camera_defrate[0]) }}</b></p>

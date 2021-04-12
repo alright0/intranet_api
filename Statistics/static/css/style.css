@@ -47,11 +47,10 @@ table{
     padding: 7px;
     max-width: 93%;
 }
-.ln{
 
+.ln{
     width: 0.1px;
     background: var(--light_gray);
-
 }
 footer{
     background: var(--silgan_gray);
@@ -72,6 +71,24 @@ footer p{
     color: #FFF;
     font-size: 8pt;
     padding-bottom: 5px;
+}
+
+.logo_background{
+    background-image: url("../img/logo_background.png");
+    text-align: center;
+    height: 500px;
+    max-width: 500px;
+    display: flex;
+    margin: 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo_background h1{
+    color: var(--silgan_blue);
+    font-size: 48pt; 
+    font-weight: bold;
 }
 
 .nav{
@@ -99,7 +116,7 @@ footer p{
     margin-top: 20px;
     text-align: center;
 }
-
+/*----------------------------------------------*/
 .infoboard_container{
     background: #f2f2f2;
     width: 905px;
@@ -124,7 +141,9 @@ footer p{
     height: 300px;
 }
 
+
 /* Окрашивание линий в зависмости от статуса */
+
 .infoboard_block#RUN{
     background: var(--line_run); /* зеленый */
 }
@@ -152,8 +171,9 @@ footer p{
 .infoboard_block:hover{
     background: var(--line_puco_hover); /* желтый */
 }
+/*------------------------------------------------*/
 
-.infoboard_block_header{
+.infoboard_block_section{
     margin:0 auto;
 	box-shadow: 0px 12px 7px -12px rgba(50, 50, 50, 0.2);
     height: 12%;
@@ -164,7 +184,7 @@ footer p{
     align-content: space-evenly;
     justify-content: space-around;
 }
-.infoboard_block_header p{
+.infoboard_block_section p{
     text-align: center;
     font-weight: 400;
     font-size: 10px;
@@ -187,23 +207,6 @@ footer p{
     color: var(--silgan_gray);
 }
 
-.infoboard_block_footer{
-    margin:0 auto;
-    height: 12%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: space-evenly;
-    justify-content: space-around;
-}
-
-
-.infoboard_block_footer p{
-    text-align: center;
-    font-weight: 400;
-    color: var(--silgan_gray);
-}
-
 .infoboard_block_small {
     width: 40%;
     font-size: 10px;
@@ -211,7 +214,7 @@ footer p{
 }
 
 
-/* production_plan.html */
+/*----------------------------------------------------*/
 
 .production_plan{
     display:grid;
@@ -292,6 +295,12 @@ footer p{
     font-size: 7pt;
 }
 
+/*-----------------------------------------------*/
+
+
+
+
+
 #reg_table{
     font-size: 10pt;
     border-spacing: 5px;
@@ -301,36 +310,6 @@ footer p{
     padding:5px;
 }
 
-/* конец production_plan.html*/
-
-/* production_plan_Staff.html */
-
-
-/* конец production_plan_Staff.html */
-
-
-/*
-@media screen and (orientation: portrait){
-
-    .logo{
-        justify-content: center;
-    }
-
-    .infoboard_container{
-        width: 80%;
-
-        grid-template-columns: repeat(1, 100%);
-    }
-    
-    
-    
-    .infoboard_block{
-        width: 100%;
-        height: 100%;
-    }
-
-}
-*/
 
 @media screen and (max-width: 960px){
 
@@ -344,12 +323,6 @@ footer p{
         /*align-content: center;*/
         grid-template-columns: repeat(auto-fit, 175px);
     }
-    
-    /*
-    .infoboard_block{
-        width: 47.5%;
-        min-width: 145px;
-    }*/
 
 }
 
@@ -368,11 +341,6 @@ footer p{
         align-content: center;
         grid-template-columns: repeat(auto-fit, 175px);
     }
-        /*
-    .infoboard_block{
-        width: 93%;
-        min-width: 145px;
-    }*/
 
 }
 

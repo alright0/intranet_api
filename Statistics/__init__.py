@@ -16,6 +16,7 @@ app.config.from_object(Config)
 
 login = LoginManager(app)
 login.login_view = "users.login"
+login.login_message = "Вы должны авторизоваться, чтобы получить доступ к данной странице"  # flash сообщение при редиректре на login_required
 
 # тестовый клиент для тестов
 client = app.test_client()
