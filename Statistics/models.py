@@ -271,7 +271,7 @@ class as_material_data(Base_fc):
     not_used_8 = db.Column("source_material", db.Integer)
 
 
-class up_puco_code(Base_fc):
+class up_puco_code(Base_cam):
     """Класс описывает таблицу ``up_puco_code`` на ``EN-DB05``\n
     таблица хранит описание кодов пуко\n
     Список доступных параметров:\n
@@ -283,7 +283,7 @@ class up_puco_code(Base_fc):
     ``id_line`` - str - список подходящих к этому коду линий\n
     """
 
-    __bind_key__ = "fc_engine"
+    __bind_key__ = "cam_engine"
     __tablename__ = "up_puco_code"
 
     code = db.Column("id_code", db.String, primary_key=True)
@@ -292,23 +292,25 @@ class up_puco_code(Base_fc):
     group_eng = db.Column(db.String)
     group_ru = db.Column(db.String)
     id_line = db.Column(db.String)
+    color = db.Column(db.String)
 
     @classmethod
     def get_puco_codes_description(self):
 
-        columns = ["puco_code", "name_ru"]
+        columns = ["puco_code", "name_ru", "color"]
 
-        # сюда можно добавить кастомные коды
-        additional_codes = pd.DataFrame([["RUN", "Выпуск"]], columns=columns)
-
+        """# сюда можно добавить кастомные коды
+        additional_codes = pd.DataFrame([["RUN", "Выпуск", ""]], columns=columns)
+        """
         # здесь создается список кодов из базы
         puco_codes_description = pd.DataFrame(
-            self.query.with_entities(self.code, self.name_ru).all(), columns=columns
+            self.query.with_entities(self.code, self.name_ru, self.color).all(),
+            columns=columns,
         )
 
-        puco_codes_description = puco_codes_description.append(
+        """puco_codes_description = puco_codes_description.append(
             additional_codes, ignore_index=True
-        )
+        )"""
 
         return puco_codes_description
 

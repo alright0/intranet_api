@@ -18,12 +18,12 @@ site = Blueprint("site", __name__)
 @site.route("/daily_report", methods=["GET"])
 def daily_report():
 
-    # last_day_lines = up_puco_table(period="day", lines=["LL-01"])
+    last_day_lines = up_puco_table(period="day", lines=["LL-02"])
 
     # print(last_day_lines.__repr__())
     # df3 = last_day_lines.get_month_table()
 
-    # last_day_line_graph = last_day_lines.line_shift_report()
+    last_day_line_graph = last_day_lines.stops_trace_graph()
 
     return render_template("daily_report.html", lines=LINES)
 

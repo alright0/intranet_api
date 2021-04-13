@@ -107,7 +107,7 @@ class up_puco_table:
 
         # начальная и конечная даты с указанием часов
         date_start_with_hours = dt_start + timedelta(hours=8)
-        date_end_with_hours = dt_end + timedelta(days=1, hours=8)
+        date_end_with_hours = dt_end + timedelta(days=0, hours=8)
         
         
         # превращение даты из формата 2021-03-01 00:00:00 в 20210301
@@ -116,6 +116,7 @@ class up_puco_table:
         date_end_sql = (
             f"{str(date_end_with_hours)[:4]}{str(date_end_with_hours)[5:7]}{str(date_end_with_hours)[8:10]}"
         )
+
 
         return {
             "date_start": dt_start,
@@ -815,26 +816,36 @@ class up_puco_table:
 
                 #camera_defrate_fig.show()
 
-    def line_shift_report(self):
+    def stops_pie_graph(self):
         """возвращает круговую диаграмму с описанием временных затрат на линии и выпуска
         """
 
+        # список кодов для маппинга
         codes_description_df = up_puco_code.get_puco_codes_description()
 
+
         for line in self.lines:
-            df3 = self.__get_raw_df_by_line(line)
-            df3["seconds"] = df3["minutes"].dt.seconds // 60
-            df3 = df3.loc[
-                (df3["date_stop"] >= self.date_start_with_hours)
-                & (df3["date_stop"] <= self.date_end_with_hours)
+        
+            line_by_time_df = self.__get_raw_df_by_line(line)
+
+            # ограничение по времени начала и конца
+            line_by_time_df["seconds"] = line_by_time_df["minutes"].dt.seconds // 60
+            line_by_time_df = line_by_time_df.loc[
+                (line_by_time_df["date_stop"] >= self.date_start_with_hours)
+                & (line_by_time_df["date_stop"] <= self.date_end_with_hours)
             ]
 
-            df3_pivot_table = pd.pivot_table(
-                df3, index=["date", "shift", "puco_code"], values=["seconds"], aggfunc="sum"
+            # группировка по кодам остановок
+            stops_pivot_table_df = pd.pivot_table(
+                line_by_time_df, 
+                index=["date", "shift", "puco_code"], 
+                values=["seconds"], 
+                aggfunc="sum"
             ).reset_index()
 
-            df3_with_description = pd.merge(
-                df3_pivot_table,
+            # добавление описание
+            stops_with_description_df = pd.merge(
+                stops_pivot_table_df,
                 codes_description_df,
                 how="left",
                 left_on="puco_code",
@@ -842,20 +853,132 @@ class up_puco_table:
             )
 
             fig = go.Figure()
+
             fig.add_trace(
                 go.Pie(
-                    labels=df3_with_description["name_ru"],
-                    values=df3_with_description["seconds"],
+                    labels=stops_with_description_df["name_ru"] + " (" + stops_with_description_df["seconds"].astype(str) + " минут)",
+                    values=stops_with_description_df["seconds"],
                     hole=0.3,
                 )
             )
-            fig.update_traces(textinfo="label+value")
+
+            fig.update_traces(textinfo="label")
+
             fig.update_layout(
                 annotations=[
-                    dict(text=line, x=0.5, y=0.5, font_size=20, showarrow=False),
+                    dict(
+                        text=line, 
+                        x=0.5, 
+                        y=0.5, 
+                        font_size=20, 
+                        showarrow=False
+                    ),
                 ]
             )
+
         fig.show()
+
+    def stops_trace_graph(self):
+        
+        # список кодов для маппинга
+        codes_description_df = up_puco_code.get_puco_codes_description()
+
+        for line in self.lines:
+
+            line_by_time_df = self.__get_raw_df_by_line(line)
+
+            print(line_by_time_df)
+
+            # ограничение по времени начала и конца
+            line_by_time_df["seconds"] = line_by_time_df["minutes"].dt.seconds
+            line_by_time_df = line_by_time_df.loc[
+                (line_by_time_df["date_stop"] >= self.date_start_with_hours)
+                & (line_by_time_df["date_stop"] <= self.date_end_with_hours)
+                & (line_by_time_df["seconds"] > 0)
+            ]
+
+            # добавление описание
+            line_by_time_df = pd.merge(
+                line_by_time_df,
+                codes_description_df,
+                how="left",
+                left_on="puco_code",
+                right_on="puco_code",
+            )
+
+            fig = go.Figure()
+
+            fig.add_trace(
+                go.Scatter(
+                    x=line_by_time_df['date_stop'],
+                    y=line_by_time_df['counter_start'],
+                    name='Счетчик входа'
+                ),
+            )
+
+            fig.add_trace(
+                go.Scatter(
+                    x=line_by_time_df['date_stop'],
+                    y=line_by_time_df['counter_end'],
+                    name='Счетчик выхода'
+                ),
+            )
+
+            fig.add_trace(
+                go.Scatter(
+                    x=line_by_time_df['date_stop'],
+                    y0=(LINE_OUTPUT[line]),
+                    dy=-0,
+                    name='Норма: ' + str(LINE_OUTPUT[line]/1000) + "K",
+                )
+            )
+
+            '''fig.add_shape(
+                type='line',
+                y = LINE_OUTPUT[line])'''
+
+            codes = set(line_by_time_df['puco_code'])
+
+            for code in codes:
+
+                if code != "RUN":
+
+                    code_description = codes_description_df.loc[codes_description_df['puco_code'] == code]
+                    code_description = code_description['name_ru'].iloc[0]
+
+
+                    stop_code_df = line_by_time_df.loc[
+                        (line_by_time_df["puco_code"] == code) 
+                        & (line_by_time_df["seconds"] > 0) 
+                        & (line_by_time_df["status"] == "STOP")
+                    ]
+
+                    stop_code_df['event_started'] =  stop_code_df["date_stop"] - stop_code_df['minutes']
+
+                    fig.add_trace(
+                        go.Bar(
+                            x=stop_code_df['date_stop'] - stop_code_df["minutes"] / 2,
+                            y=stop_code_df['counter_end'],
+                            name=code_description + " (" +  str(stop_code_df["seconds"].sum() // 60) + " минут)",
+                            width=stop_code_df["seconds"] * 1000,
+                            hoverinfo="text",
+                            marker_color=stop_code_df["color"],
+                            hovertext=(
+                                stop_code_df["puco_code"] + ": " + stop_code_df["name_ru"] 
+                                + ".<br>Начало остановки: " + stop_code_df["event_started"].astype(str).str[-8:]
+                                + ".<br>Конец остановки: " + stop_code_df["date_stop"].astype(str).str[-8:] 
+                                + "<br>Продолжительность: " + stop_code_df["minutes"].astype(str).str[-8:]
+                            ),
+                        )
+                    )
+
+            fig.show()
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
