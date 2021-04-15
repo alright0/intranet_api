@@ -23,29 +23,16 @@ client = app.test_client()
 
 path = Path(__file__).parents[0]
 
-# для демонстрации
-if 0:
-    # создание подключения к базе EN-VM01
-    cam_engine = create_engine(
-        f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
-    )
 
-    # создание подключения к базе EN-DB05
-    fc_engine = create_engine(
-        f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
-    )
+# создание подключения к базе EN-VM01
+cam_engine = create_engine(
+    f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
+)
 
-else:
-
-    # создание подключения к базе EN-VM01
-    cam_engine = create_engine(
-        f"sqlite:///{path}/Demo/VM.db",
-    )
-
-    # создание подключения к базе EN-DB05
-    fc_engine = create_engine(
-        f"sqlite:///{path}/Demo/FC.db",
-    )
+# создание подключения к базе EN-DB05
+fc_engine = create_engine(
+    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
+)
 
 
 session_cam = scoped_session(

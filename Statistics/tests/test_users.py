@@ -1,6 +1,13 @@
+import sys
+import pathlib
+
+sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
+
 from Statistics import *
 
-user = User(username="test_user_for_pytest", password="test_password")
+user = User(
+    username="test_user_for_pytest", password="test_password", email="t@silgamnp.com"
+)
 
 
 # проверка записей в базу

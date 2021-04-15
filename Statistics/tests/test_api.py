@@ -1,7 +1,12 @@
-# from Statistics.app import *
+import sys
+import pathlib
 
-camera = "LZ-1"
-camera_side = "LZ-1 A"
+sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
+
+from Statistics import *
+
+camera = "LZ-01"
+camera_side = "LZ-01 A"
 
 wrong_camera = "wrong line_name"
 wrong_camera_side = "wrong_camera_side"
