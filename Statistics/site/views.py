@@ -43,9 +43,7 @@ def production_plan_staff():
 
     info = up_puco_table(date(2021, 3, 3))
 
-    df = info.get_month_table()
-
-    plot = info.subplots(df, style="mini")
+    plot = info.subplots(style="mini")
     now = datetime.strftime(datetime.now(), "%H:%M:%S")
 
     return render_template(
@@ -63,11 +61,11 @@ def production_plan():
 
     info = up_puco_table(date(2021, 3, 3))
 
-    df = info.get_month_table()
+    # df = info.get_month_table()
 
-    plot = info.subplots(df)
-    table = info.date_table(df)
-    table_average = info.date_table_average(df)
+    plot = info.subplots()
+    table = info.date_table()
+    table_average = info.date_table_average()
 
     return render_template(
         "production_plan.html",

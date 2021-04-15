@@ -50,7 +50,7 @@ class up_puco_table:
         self.date_start_sql = dates['date_start_sql'] # 20210101
         self.date_end_sql = dates['date_end_sql'] # 20210131
 
-
+        self.data = self.get_month_table()
     
 
     def __repr__(self):
@@ -489,13 +489,13 @@ class up_puco_table:
 
 
     # NOTE: Строит bar график линий c подсветкой выработки
-    def subplots(self, agregated_lines_df, style='original'):
+    def subplots(self, style='original'):
         """Эту функцию можно вызвать, чтобы построить график линий за даты,
         указанные в экземпляре классa. Функция принимает на вход фрейм экземпляра и
         возвращает json для построения в plotly.js
         """
 
-        agregated_lines_df = agregated_lines_df.copy()
+        agregated_lines_df = self.data.copy()
 
         # первая и последняя даты для заголовка графика
         date_start_str = agregated_lines_df['date_stop'].iloc[0]
@@ -596,7 +596,7 @@ class up_puco_table:
         return plot_json
 
     # NOTE: таблица с итогами по буквам смен
-    def date_table_average(self, agregated_lines_df):
+    def date_table_average(self):
         """ Функция принимает фрейм из ``get_valid_lines`` и возвращает словарь, где ключ - название линии,
         а значение - отрендеренный html, содержащий таблицу информацию по линии: буквы смены, 
         количество смен, среднюю выработку и абсолютную выработку.
@@ -615,7 +615,7 @@ class up_puco_table:
 
             average_table_df = pd.DataFrame([])
 
-            average_table_df[['date_stop', 'shift', 'letter', 'absolute']] = agregated_lines_df[['date_stop', 'shift', 'letter', line]]
+            average_table_df[['date_stop', 'shift', 'letter', 'absolute']] = self.data[['date_stop', 'shift', 'letter', line]]
 
             # посчитать смену, если выпуск по ней больше 25% от нормы выработки
             average_table_df["shift"] = average_table_df['absolute'].apply(
@@ -692,7 +692,7 @@ class up_puco_table:
         return line_to_html_dict
 
     # NOTE: таблица с деталицацией по датам и сменам. С итогами
-    def date_table(self, agregated_lines_df):
+    def date_table(self):
         """Эта функция принимает фрейм из ``get_month_table`` и возвращает таблицу\n
         в виде отрендеренного html, который необходимо встроить в страницу\n 
         сформированную по датам и сменам, с буквами смен и выпуском линий.\n
@@ -705,7 +705,7 @@ class up_puco_table:
 
         """
 
-        agregated_lines_df = agregated_lines_df.copy()
+        agregated_lines_df = self.data.copy()
         
         # переименование для заголовков на русском
         agregated_lines_df.rename(
