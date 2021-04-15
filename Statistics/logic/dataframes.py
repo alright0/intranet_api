@@ -341,8 +341,8 @@ class up_puco_table:
 
             return final_df_by_line
         else:
-
-            return pd.DataFrame([])
+            
+            return pd.DataFrame([], columns=[line])
 
     # NOTE: эта функция размечает даты буквами смен
     def __month_range(self):
@@ -438,6 +438,9 @@ class up_puco_table:
 
                 selected_lines.append(line)
 
+            
+
+
         # если пришел пустой список линий, то назад вернется только список дат, смен и букв
         if not agregated_lines_df.empty:
 
@@ -472,9 +475,16 @@ class up_puco_table:
                 )
             )
 
+            # переопределение списка линий на линии, по которым реально был выпуск
+            self.lines = list(set(self.lines).intersection(set(ready_date_shift_letter_df.head())))
+
             return ready_date_shift_letter_df
 
         else:
+
+            # переопределение списка линий на линии, по которым реально был выпуск
+            self.lines = list(set(self.lines).intersection(set(patterned_date_df.head())))
+
             return patterned_date_df
 
 
@@ -486,8 +496,6 @@ class up_puco_table:
         """
 
         agregated_lines_df = agregated_lines_df.copy()
-
-        #valid_lines = self.__get_valid_lines(agregated_lines_df)
 
         # первая и последняя даты для заголовка графика
         date_start_str = agregated_lines_df['date_stop'].iloc[0]
@@ -524,6 +532,7 @@ class up_puco_table:
 
             # раскрашивание в зависимости от выработки
             color_list = []
+        
             color_list = agregated_lines_df[self.lines[i]].apply(
                 lambda x: "green"
                 if x > LINE_OUTPUT[self.lines[i]]
@@ -531,7 +540,7 @@ class up_puco_table:
                 if x < LINE_OUTPUT[self.lines[i]] / 25 
                 else "#003882"
             )
-
+        
 
             subplot_fig.add_trace(
                 go.Bar(
@@ -856,7 +865,8 @@ class up_puco_table:
 
             fig.add_trace(
                 go.Pie(
-                    labels=stops_with_description_df["name_ru"] + " (" + stops_with_description_df["seconds"].astype(str) + " минут)",
+                    labels=(stops_with_description_df["name_ru"] + " (" 
+                    + stops_with_description_df["seconds"].astype(str) + " минут)"),
                     values=stops_with_description_df["seconds"],
                     hole=0.3,
                 )
@@ -876,7 +886,7 @@ class up_puco_table:
                 ]
             )
 
-        fig.show()
+        #fig.show()
 
     def stops_trace_graph(self):
         
@@ -886,8 +896,6 @@ class up_puco_table:
         for line in self.lines:
 
             line_by_time_df = self.__get_raw_df_by_line(line)
-
-            print(line_by_time_df)
 
             # ограничение по времени начала и конца
             line_by_time_df["seconds"] = line_by_time_df["minutes"].dt.seconds
@@ -928,14 +936,10 @@ class up_puco_table:
                 go.Scatter(
                     x=line_by_time_df['date_stop'],
                     y0=(LINE_OUTPUT[line]),
-                    dy=-0,
+                    dy=-0.00001,
                     name='Норма: ' + str(LINE_OUTPUT[line]/1000) + "K",
                 )
             )
-
-            '''fig.add_shape(
-                type='line',
-                y = LINE_OUTPUT[line])'''
 
             codes = set(line_by_time_df['puco_code'])
 
@@ -974,18 +978,6 @@ class up_puco_table:
 
             fig.show()
 
-
-
-
-
-
-
-
 if __name__ == "__main__":
 
-    rep = up_puco_table(lines=['LZ-1'])
-
-    rep.camera_table()
-
-    #print(rep.__parsedata())
-    #print(rep.get_month_table())
+    pass

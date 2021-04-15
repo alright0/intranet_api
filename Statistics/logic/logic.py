@@ -17,15 +17,9 @@ def order_description(order):
 
     index = as_line_speed.query.filter(as_line_speed.order == order).first().index
 
-    # print(index)
-    # "4-05-1-080-1-00003"
-    # index = "4-05-1-080-1-00003"
-
     description = (
         as_material_data.query.filter(as_material_data.index == index).first().full_name
     )
-
-    # print(description)
 
     cut = 40
     # если длина описания больше cut, то обрезать его
@@ -59,8 +53,15 @@ def get_line_status(line):
             },
         }
     """
-
-    line_status_dict = dict()
+    # пустой словарь
+    line_status_dict = dict(
+        status="",
+        operator="",
+        input=0,
+        output=0,
+        order={"order": "", "description": ""},
+        camera={},
+    )
 
     try:
         # получение списка параметров линии
@@ -90,7 +91,7 @@ def get_line_status(line):
             except:
                 line_status_dict["order"]["description"] = "Description not found"
 
-            line_status_dict["camera"] = {}
+            # line_status_dict["camera"] = {}
 
             # процент брака по камерам. Возвращается список от 0 до 2 элементов
             try:

@@ -17,13 +17,7 @@ site = Blueprint("site", __name__)
 
 @site.route("/daily_report", methods=["GET"])
 def daily_report():
-
-    last_day_lines = up_puco_table(period="day", lines=["LL-02"])
-
-    # print(last_day_lines.__repr__())
-    # df3 = last_day_lines.get_month_table()
-
-    last_day_line_graph = last_day_lines.stops_trace_graph()
+    """Здесь будет страница отчета за последние сутки(или за указанные)"""
 
     return render_template("daily_report.html", lines=LINES)
 
@@ -43,24 +37,11 @@ def index():
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
 
 
-# @login_required
-@site.route("/test", methods=["get"])
-@login_required
-def test():
-
-    info = up_puco_table(period="day")
-    df = info.camera_defrate_graph()
-
-    # if current_user.accesslevel < 4:
-    #    return redirect(url_for("site.access_denied"))
-    return render_template("base.html")
-
-
 @site.route("/production_plan_staff", methods=["GET"])
 def production_plan_staff():
     """Страница с графиком выработки для персонала"""
 
-    info = up_puco_table()
+    info = up_puco_table(date(2021, 3, 3))
 
     df = info.get_month_table()
 
@@ -77,8 +58,10 @@ def production_plan_staff():
 # TODO: добавить возможность выбора периодов
 @site.route("/production_plan", methods=["GET"])
 def production_plan():
+    """План производства с подробным графиком.
+    Всегда показывает текущий месяц, если не указано другое"""
 
-    info = up_puco_table()
+    info = up_puco_table(date(2021, 3, 3))
 
     df = info.get_month_table()
 
@@ -96,6 +79,7 @@ def production_plan():
 
 @site.route("/access_denied", methods=["get"])
 def access_denied():
+    """Редирект с контента с более высоким уровнем доступа"""
 
     error = {
         "code": "Доступ запрещен",
