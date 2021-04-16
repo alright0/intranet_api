@@ -11,6 +11,7 @@ from Statistics.logic.logic import *
 from Statistics.models import Camera
 from Statistics.schemas import CameraSchema
 from werkzeug.exceptions import HTTPException
+import logging
 
 site = Blueprint("site", __name__)
 
@@ -26,6 +27,8 @@ def daily_report():
 @site.route("/", methods=["GET"])
 def index():
     """Главная страница, содержащая табло работы линий в реальном времени"""
+
+    logging.info("я сообщение лога")
 
     lines_status = []
     for line in LINES:

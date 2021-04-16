@@ -1,15 +1,23 @@
 from datetime import date, datetime, timedelta
 
+import os
+import logging
+from pathlib import Path
 import sqlalchemy as db
+
 from flask import Flask
 from flask_login import LoginManager, UserMixin
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from pathlib import Path
-
+from logging.handlers import SMTPHandler, RotatingFileHandler
+from flask_mail import Mail
 
 from config import VM, FC, Config
+
+
+path = Path(__file__).parents[1]
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -21,8 +29,7 @@ login.login_message = "Вы должны авторизоваться, чтоб�
 # тестовый клиент для тестов
 client = app.test_client()
 
-path = Path(__file__).parents[0]
-
+mail = Mail(app)
 
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
@@ -68,3 +75,43 @@ from .users.views import users
 app.register_blueprint(camera)
 app.register_blueprint(site)
 app.register_blueprint(users)
+
+if not app.debug:
+
+    if app.config["MAIL_SERVER"]:
+        auth = None
+        if app.config["MAIL_USERNAME"]:
+            auth = app.config["MAIL_USERNAME"]
+            secure = None
+            if app.config["MAIL_USE_TLS"]:
+                secure = ()
+
+            mail_handler = SMTPHandler(
+                mailhost=(app.config["MAIL_SERVER"], app.config["MAIL_PORT"]),
+                fromaddr="no-reply@silganmp.com",
+                toaddrs=app.config["ADMINS"],
+                subject="Statistics Site Failure",
+                credentials=auth,
+                secure=secure,
+            )
+
+            mail_handler.setLevel(logging.ERROR)
+            app.logger.addHandler(mail_handler)
+
+    if not Path.exists(path / "logs"):
+        Path.mkdir(path / "logs")
+    file_handler = RotatingFileHandler(
+        path / "logs/statistcs.log", maxBytes=10240, backupCount=10
+    )
+
+    file_handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+        )
+    )
+
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+
+    app.logger.setLevel(logging.INFO)
+    app.logger.info("Statistics Site Startup")

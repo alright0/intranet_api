@@ -6,18 +6,31 @@ from Statistics.models import User
 
 
 class LoginForm(FlaskForm):
-    username = StringField("Имя пользователя", validators=[DataRequired()])
-    password = PasswordField("Пароль", validators=[DataRequired()])
+    username = StringField("Имя пользователя:", validators=[DataRequired()])
+    password = PasswordField("Пароль:", validators=[DataRequired()])
     remember_me = BooleanField("Запомнить меня")
     submit = SubmitField("Войти")
 
 
-class RegistrationForm(FlaskForm):
-    username = StringField("Имя пользователя", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
-    password = PasswordField("Пароль", validators=[DataRequired()])
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField("Email:", validators=[DataRequired(), Email()])
+    submit = SubmitField("Сбросить пароль")
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField("Пароль:", validators=[DataRequired()])
     password2 = PasswordField(
-        "Повторите пароль",
+        "Повторите пароль:", validators=[DataRequired(), EqualTo("password")]
+    )
+    submit = SubmitField("Сбросить пароль")
+
+
+class RegistrationForm(FlaskForm):
+    username = StringField("Имя пользователя:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    password = PasswordField("Пароль:", validators=[DataRequired()])
+    password2 = PasswordField(
+        "Повторите пароль:",
         validators=[
             DataRequired(),
             EqualTo("password", message="Пароли не совпадают"),

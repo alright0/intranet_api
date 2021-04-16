@@ -10,10 +10,54 @@ from Statistics import *
 from config import *
 from Statistics.models import User
 from Statistics.schemas import CameraSchema
-from Statistics.forms import LoginForm, RegistrationForm
+from Statistics.mail import send_email, send_password_reset_email
+from Statistics.forms import (
+    LoginForm,
+    RegistrationForm,
+    ResetPasswordRequestForm,
+    ResetPasswordForm,
+)
 from Statistics.logic.logic import *
 
 users = Blueprint("users", __name__)
+
+
+@users.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("site.index"))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=str(form.email.data).lower()).first()
+        if user:
+            send_password_reset_email(user)
+        flash(
+            "На указанный адрес электронной почты отправлено сообщение с инструкцией по сбросу пароля"
+        )
+        return redirect(url_for("users.login"))
+    return render_template("forgot_password.html", title="Сброс пароля", form=form)
+
+
+@users.route("/reset_password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for("site.index"))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for("site.index"))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        print(user.password)
+
+        user.set_password(form.password.data)
+
+        session_cam().commit()
+
+        print(user.password)
+
+        flash("Ваш пароль сброшен!")
+        return redirect(url_for("users.login"))
+    return render_template("reset_password.html", form=form)
 
 
 @users.route("/login", methods=["GET", "POST"])

@@ -1,8 +1,10 @@
-from Statistics import db, Base_cam, Base_fc, cam_engine, fc_engine, login
+from Statistics import db, Base_cam, Base_fc, cam_engine, fc_engine, login, app
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import cast
 from flask_login import UserMixin
 import pandas as pd
+import jwt
+from time import time
 
 
 @login.user_loader
@@ -39,6 +41,24 @@ class User(UserMixin, Base_cam):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    def get_reset_password_token(self, expires_in=600):
+        return jwt.encode(
+            {"reset_password": self.id, "exp": time() + expires_in},
+            app.config["SECRET_KEY"],
+            algorithm="HS256",
+        )
+
+    @staticmethod
+    def verify_reset_password_token(token):
+
+        try:
+            id = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])[
+                "reset_password"
+            ]
+        except:
+            return
+        return User.query.get(id)
 
 
 class Camera(Base_cam):
