@@ -6,6 +6,7 @@
     <title>{% block title %}Production Plan{% endblock %}</title>
     {% block javascript %}
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="../static/js/responsive_plot.js"></script>
     {% endblock %}
 </head>
 
@@ -24,39 +25,8 @@
             <div class="production_plan_graphs">
                 <div class="production_plan_stdblock" id='main_graph'>
                     <script>
-                        (function () {
-                            var d3 = Plotly.d3;
+                        responsive_plot({{ plot | safe}}, 'main_graph');
 
-                            /* ширина и высота в процентах*/
-                            var WIDTH = 98,
-                                HEIGHT = 50;
-
-                            /* ширина и высота родительского элемента*/
-                            var gd3 = d3.select('#main_graph')
-                                .style({
-                                    width: WIDTH + '%',
-                                    height: HEIGHT + 'vh',
-                                });
-
-                            var gd = gd3.node();
-
-                            /*встраивание переменной jinja2*/
-                            var graph_json = {{ plot | safe
-                        }};
-
-                        /*здесь создается график*/
-                        graph = Plotly.plot('main_graph', graph_json, {}, { displayModeBar: false });
-
-                        /* событие изменения ширины*/
-                        window.onresize = function (event) {
-                            gd3.style({
-                                width: WIDTH + '%',
-                                height: HEIGHT + 'vh',
-                            });
-                            gd = gd3.node()
-                            Plotly.Plots.resize(gd);;
-                        };
-                        }) ();
                     </script>
                 </div>
                 <div class="production_plan_tbl">

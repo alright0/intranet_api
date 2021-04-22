@@ -1,10 +1,10 @@
-from datetime import date, datetime, timedelta
-
 import os
 import logging
 from pathlib import Path
 import sqlalchemy as db
 
+# from celery import Celery
+from datetime import date, datetime, timedelta
 from flask import Flask
 from flask_login import LoginManager, UserMixin
 from sqlalchemy import create_engine
@@ -30,6 +30,9 @@ login.login_message = "Вы должны авторизоваться, чтоб�
 client = app.test_client()
 
 mail = Mail(app)
+
+# celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+# celery.conf.update(app.config)
 
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
@@ -70,11 +73,14 @@ from Statistics.models import *
 from .api.views import camera
 from .site.views import site
 from .users.views import users
+from Statistics.handlers import error_handlers
 
 # регистрация Blueprints
 app.register_blueprint(camera)
 app.register_blueprint(site)
 app.register_blueprint(users)
+app.register_blueprint(error_handlers)
+
 
 if not app.debug:
 

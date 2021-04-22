@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+<head>
+    {% block javascript %}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="../static/js/responsive_plot.js"></script>
+    {% endblock %}
+</head>
+
+<body>
+
+
+    <main>
+        {% block content %}
+        <div class="production_plan" style="display:block;text-align: center;">
+
+            <div class="production_plan_tbl" style="margin:auto; text-align: center; display: block;">
+
+                {% for fig in output_table %}
+                <div class="production_plan_stdbloc" id='main_graph_{{loop.index}}'>
+                    <script>
+                        responsive_plot({{ fig | safe}}, 'main_graph_{{loop.index}}', 99, 50);
+
+                    </script>
+                </div>
+                {% endfor %}
+
+                <div class="production_plan_stdbloc">
+                    {{table|safe}}
+                </div>
+
+            </div>
+
+        </div>
+        </div>
+
+        {% endblock %}
+
+    </main>>

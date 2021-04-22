@@ -11,5 +11,3 @@ class CameraSchema(Schema):
     last_part = fields.DateTime(dump_only=True)
     total = fields.Integer(dump_only=True, required=True)
     rejected = fields.Integer(dump_only=True, required=True)
-
-

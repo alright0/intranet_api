@@ -1,11 +1,11 @@
 from datetime import date, datetime, timedelta
-import pandas as pd
-from flask import jsonify
 
-from config import LINES, LINE_OUTPUT, IBEA_ADDRESS, IBEA_CAMERA_MAP
+import pandas as pd
+from config import IBEA_ADDRESS, IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
+from flask import jsonify
+from Statistics.logic.dataframes import *
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
-from Statistics.logic.dataframes import *
 
 
 def order_description(order):
