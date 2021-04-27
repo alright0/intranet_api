@@ -19,14 +19,14 @@ site = Blueprint("site", __name__)
 @site.route("/detailed_daily_report", methods=["GET", "POST"])
 def detailed_daily_report():
 
-    line_report = up_puco_table(period="day")
-    # plot = line_report.stops_pie_graph()
+    line_report = up_puco_table(period="day", lines=["LZ-03"])
     table = line_report.camera_defrate_table()
 
-    output_table = line_report.stops_trace_graph()
+    stops_plot = line_report.stops_trace_graph()
+    print(stops_plot.keys())
 
     return render_template(
-        "detailed_daily_report.html", table=table, output_table=output_table
+        "detailed_daily_report.html", table=table, stops_plot=stops_plot
     )
 
 
@@ -71,20 +71,35 @@ def production_plan_staff():
 
 
 # TODO: добавить возможность выбора периодов
-@site.route("/production_plan", methods=["GET"])
+@site.route("/production_plan", methods=["GET", "POST"])
 def production_plan():
     """План производства с подробным графиком.
     Всегда показывает текущий месяц, если не указано другое"""
 
-    info = up_puco_table()
+    if request.method == "POST":
 
-    plot = info.subplots()
-    table = info.date_table()
-    table_average = info.date_table_average()
+        # возврат выбранной в календаре даты в формате YYYY-MM
+        calendar_date = datetime.strptime(
+            request.form.get("calendar_date"), "%Y-%m"
+        ).date()
+
+        # экземпляр ответа
+        new_response = up_puco_table(date=calendar_date)
+
+        return json.dumps(
+            {
+                "table": new_response.date_table(),
+                "plot": new_response.subplots(),
+                "average": new_response.date_table_average(),
+            }
+        )
+
+    # Экземпляр для начальных условий
+    start_response = up_puco_table()
 
     return render_template(
         "production_plan.html",
-        table=table,
-        plot=plot,
-        table_average=table_average,
+        table=start_response.date_table(),
+        plot=start_response.subplots(),
+        table_average=start_response.date_table_average(),
     )

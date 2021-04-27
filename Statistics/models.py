@@ -102,8 +102,6 @@ class Camera(Base_cam):
             self.date_now,
             self.date_now_sys,
             self.job,
-            # self.start_time,
-            # self.last_part,
             self.total,
             self.rejected,
         ).filter(self.date_now_sys >= dt1, self.date_now_sys <= dt2, self.line == line)
@@ -327,10 +325,6 @@ class up_puco_code(Base_cam):
             self.query.with_entities(self.code, self.name_ru, self.color).all(),
             columns=columns,
         )
-
-        """puco_codes_description = puco_codes_description.append(
-            additional_codes, ignore_index=True
-        )"""
 
         return puco_codes_description
 

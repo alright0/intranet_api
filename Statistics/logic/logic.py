@@ -6,24 +6,7 @@ from flask import jsonify
 from Statistics.logic.dataframes import *
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
-
-
-def order_description(order):
-    """Принимает номер заказа в виде строки(прим.: ``10012`` ``00513``) и возвращает описание.\n
-    Соответствует двум запросам:\n
-    ``SELECT po_id(index) FROM as_line_speed WHERE product_id(order) = '{order}'``\n
-    ``SELECT the_name_of_the_holding_company(full_name) FROM as_material_data WHERE article(index) = (first_query)``
-    """
-
-    index = as_line_speed.query.filter(as_line_speed.order == order).first().index
-
-    description = (
-        as_material_data.query.filter(as_material_data.index == index).first().full_name
-    )
-
-    cut = 40
-    # если длина описания больше cut, то обрезать его
-    return description if len(description) <= cut else f"{description[:cut]}..."
+from Statistics.logic.queries import get_order_description
 
 
 def get_line_status(line):
@@ -83,13 +66,9 @@ def get_line_status(line):
             line_status_dict["order"]["order"] = line_status.order
 
             # описание заказа
-            try:
-                line_status_dict["order"]["description"] = order_description(
-                    line_status.order
-                )
-
-            except:
-                line_status_dict["order"]["description"] = "Description not found"
+            line_status_dict["order"]["description"] = get_order_description(
+                [line_status.order]
+            )[line_status.order]
 
             # line_status_dict["camera"] = {}
 

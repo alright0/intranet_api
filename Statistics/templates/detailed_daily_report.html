@@ -16,12 +16,37 @@
 
             <div class="production_plan_tbl" style="margin:auto; text-align: center; display: block;">
 
-                {% for fig in output_table %}
-                <div class="production_plan_stdbloc" id='main_graph_{{loop.index}}'>
-                    <script>
-                        responsive_plot({{ fig | safe}}, 'main_graph_{{loop.index}}', 99, 50);
+                {% for line in stops_plot %}
+                <div class="daily_report_line" style="border:1px solid">
+                    {% for fig in stops_plot[line] %}
+                    <div class="daily_report_line_flex" style="border:1px solid">
+                        <div class="production_plan_stdblock" style="border:1px solid; width:20%">
+                            <div class="infoboard_block_section " style="height:auto; ">
+                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
+                                    harum
+                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
+                            </div>
+                            <div class="infoboard_block_section " style="height:auto; ">
+                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
+                                    harum
+                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
+                            </div>
+                            <div class="infoboard_block_section " style="height:auto; ">
+                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
+                                    harum
+                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
+                            </div>
 
-                    </script>
+                        </div>
+                        <div class="production_plan_stdblock" style="border:1px solid"
+                            id="main_graph_{{line}}_{{loop.index}}">
+                            <script>
+                                responsive_plot({{ stops_plot[line][fig] | safe }}, 'main_graph_{{line}}_{{loop.index}}', 75, 40);
+                            </script>
+                        </div>
+                    </div>
+
+                    {% endfor %}
                 </div>
                 {% endfor %}
 
@@ -32,7 +57,7 @@
             </div>
 
         </div>
-        </div>
+
 
         {% endblock %}
 

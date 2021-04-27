@@ -5,6 +5,8 @@
 <head>
     <title>{% block title %}Production Plan{% endblock %}</title>
     {% block javascript %}
+    {{ super() }}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="../static/js/responsive_plot.js"></script>
     {% endblock %}
@@ -14,26 +16,31 @@
 
 
     <main>
-        {% block header %}{% endblock %}
-        {% block nav %}{% endblock %}
+
+
         {% block content %}
 
-        <!--<meta http-equiv="refresh" content="1800">-->
+        <div class="calendar" style="width: 100%; text-align: center; margin-top: 7px;">
+            <form action="/production_plan" id="calendar" method="POST">
+                <input type="month" name="calendar_date" id="input_calendar" min="2020-01">
+                <input type="submit" value="Показать" />
+            </form>
+        </div>
 
 
         <div class="production_plan">
             <div class="production_plan_graphs">
-                <div class="production_plan_stdblock" id='main_graph'>
+                <div class="production_plan_stdblock" id='plot'>
                     <script>
-                        responsive_plot({{ plot | safe}}, 'main_graph');
+                        responsive_plot({{ plot | safe}}, 'plot');
 
                     </script>
                 </div>
-                <div class="production_plan_tbl">
+                <div class="production_plan_tbl" id="average_container">
 
 
                     {% for tbl in table_average %}
-                    <div class="production_plan_stdblock">
+                    <div class="production_plan_stdblock" id="line_average_{{tbl}}">
                         <p>{{tbl}}</p>
                         {{table_average[tbl]|safe}}
                     </div>
@@ -45,13 +52,35 @@
             <div class="production_plan_table">
                 <div class="production_plan_stdblock">
                     <p>Выработка линий по сменам</p>
-                    {{table|safe}}
+                    <div id="table">{{table|safe}}</div>
 
                 </div>
             </div>
 
         </div>
 
+
+        <script>
+            var current_date = new Date().toISOString().slice(0, 7);
+            document.getElementById("input_calendar").value = current_date;
+            document.getElementById("input_calendar").max = current_date;
+        </script>
+        <script>
+            /* переопределить поведение кнопки "Отправить" */
+            $(document).ready(function () {
+                $("#calendar").submit(function (event) {
+
+
+                    get_response("calendar");
+
+
+                    event.preventDefault();
+
+                });
+            });
+
+
+        </script>
 
         {% endblock %}
     </main>
