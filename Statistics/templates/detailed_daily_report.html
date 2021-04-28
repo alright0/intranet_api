@@ -2,6 +2,7 @@
 
 <head>
     {% block javascript %}
+    {{super()}}
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="../static/js/responsive_plot.js"></script>
     {% endblock %}
@@ -12,53 +13,79 @@
 
     <main>
         {% block content %}
-        <div class="production_plan" style="display:block;text-align: center;">
+        <div class="input_form">
+            <form action="#" id="calendar" method="POST" style="text-align: center;">
+                <input type="date" , name="calendar" id="calendar_input" min="2020-01-01">
 
-            <div class="production_plan_tbl" style="margin:auto; text-align: center; display: block;">
+                <div class="checkboxes" style="grid-template-columns: repeat(2, 1fr); text-align: center;">
+                    <label><input type="checkbox" name="show_chronology" value="show_chronology"
+                            style="margin-right: 2px;">Хронология
+                        выпуска</label>
+                    <label><input type="checkbox" name="show_dynamic" value="show_dynamic">Динамика выпуска</label>
+                </div>
+                <div class="checkboxes">
+                    <label><input type="checkbox" name="all_lines_checkbox"
+                            onClick="toggle_all(this, 'line_checkbox')"><b>Все
+                            линии</b></label>
+                    {% for line in lines %}
+                    <label><input type="checkbox" name="line_checkbox" value={{line}}>{{line}}</label>
+                    {% endfor %}
+                </div>
+
+                <input type="submit" value="Показать">
+            </form>
+        </div>
+        <div class="production_plan" id="main_container" style="display:block;text-align: center;">
+
+            <!--<div class="production_plan_tbl" id="graph_container"
+                style="margin:auto; text-align: center; display: block;">
 
                 {% for line in stops_plot %}
                 <div class="daily_report_line" style="border:1px solid">
                     {% for fig in stops_plot[line] %}
-                    <div class="daily_report_line_flex" style="border:1px solid">
-                        <div class="production_plan_stdblock" style="border:1px solid; width:20%">
-                            <div class="infoboard_block_section " style="height:auto; ">
-                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
-                                    harum
-                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
-                            </div>
-                            <div class="infoboard_block_section " style="height:auto; ">
-                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
-                                    harum
-                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
-                            </div>
-                            <div class="infoboard_block_section " style="height:auto; ">
-                                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Debitis sapiente itaque
-                                    harum
-                                    suscipit praesentium dolorum voluptatum reiciendis quas, tempora quaerat.</p>
-                            </div>
 
-                        </div>
-                        <div class="production_plan_stdblock" style="border:1px solid"
-                            id="main_graph_{{line}}_{{loop.index}}">
-                            <script>
-                                responsive_plot({{ stops_plot[line][fig] | safe }}, 'main_graph_{{line}}_{{loop.index}}', 75, 40);
-                            </script>
-                        </div>
+                    <div class="production_plan_stdblock" style="border:1px solid"
+                        id="main_graph_{{line}}_{{loop.index}}">
+
                     </div>
-
-                    {% endfor %}
                 </div>
+
                 {% endfor %}
-
-                <div class="production_plan_stdbloc">
-                    {{table|safe}}
-                </div>
-
             </div>
+            {% endfor %}
+
+            <div class="production_plan_stdbloc">
+                {{table|safe}}
+            </div>-->
 
         </div>
 
 
+
+
+        <script>
+            /* обновление графиков при обновлении календаря и списка линий */
+            $(document).ready(function () {
+                $("#calendar").submit(function (event) {
+                    daily_report_return("calendar");
+                    event.preventDefault();
+                });
+            });
+        </script>
+
+        <!-- вставка текущего месяца в календарь -->
+        <script>
+            var today = new Date().toISOString().slice(0, 10);
+            var yestarday = new Date();
+
+            yestarday.setDate(yestarday.getDate() - 1);
+            yestarday = yestarday.toISOString().slice(0, 10);
+
+            document.getElementById("calendar_input").value = yestarday;
+            document.getElementById("calendar_input").max = today;
+        </script>
         {% endblock %}
+
+
 
     </main>>

@@ -16,18 +16,59 @@ from werkzeug.exceptions import HTTPException
 site = Blueprint("site", __name__)
 
 
+@site.route("/order_info", methods=["GET", "POST"])
+def order_info():
+
+    if request.method == "POST":
+        pass
+
+    return render_template("order_info.html", lines=LINES)
+
+
 @site.route("/detailed_daily_report", methods=["GET", "POST"])
 def detailed_daily_report():
 
-    line_report = up_puco_table(period="day", lines=["LZ-03"])
+    if request.method == "POST":
+
+        lines_list = request.form.getlist("line_checkbox")
+
+        calendar_date = get_date_from_html_input(
+            request.form.get("calendar"), "%Y-%m-%d"
+        )
+
+        # экземпляр ответа
+        new_response = up_puco_table(date=calendar_date, lines=lines_list, period="day")
+
+        return json.dumps(new_response.stops_trace_graph())
+
+        """l_dict = {line: {1: {"data": 1, "layout": 2}, 2: "xyz"} for line in lines_list}
+        print(l_dict)
+        return json.dumps(l_dict)"""
+
+    # line_report = up_puco_table(period="day", lines=["LZ-02"])
+    table = "line_report.camera_defrate_table()"
+
+    stops_plot = {"1": " 1", "2": " 2"}  # line_report.stops_trace_graph()
+
+    return render_template(
+        "detailed_daily_report.html", table=table, stops_plot=stops_plot, lines=LINES
+    )
+
+
+"""@site.route("/detailed_daily_report", methods=["GET", "POST"])
+def detailed_daily_report():
+
+    if request.method == "POST":
+        print(request.form.get("123"))
+
+    line_report = up_puco_table(period="day", lines=["LZ-02"])
     table = line_report.camera_defrate_table()
 
     stops_plot = line_report.stops_trace_graph()
-    print(stops_plot.keys())
 
     return render_template(
-        "detailed_daily_report.html", table=table, stops_plot=stops_plot
-    )
+        "detailed_daily_report.html", table=table, stops_plot=stops_plot, lines=LINES
+    )"""
 
 
 @site.route("/daily_report", methods=["GET"])
@@ -78,10 +119,9 @@ def production_plan():
 
     if request.method == "POST":
 
-        # возврат выбранной в календаре даты в формате YYYY-MM
-        calendar_date = datetime.strptime(
+        calendar_date = get_date_from_html_input(
             request.form.get("calendar_date"), "%Y-%m"
-        ).date()
+        )
 
         # экземпляр ответа
         new_response = up_puco_table(date=calendar_date)

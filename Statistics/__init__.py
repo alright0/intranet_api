@@ -2,8 +2,9 @@ import os
 import logging
 from pathlib import Path
 import sqlalchemy as db
+import pandas as pd
 
-# from celery import Celery
+
 from datetime import date, datetime, timedelta
 from flask import Flask
 from flask_login import LoginManager, UserMixin
@@ -121,3 +122,6 @@ if not app.debug:
 
     app.logger.setLevel(logging.INFO)
     app.logger.info("Statistics Site Startup")
+
+# отключение предупреждения chained_assignment
+pd.options.mode.chained_assignment = None

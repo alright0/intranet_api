@@ -540,6 +540,10 @@ class up_puco_table:
                     yaxis2=dict(showgrid=False),
                 )
 
+                """fig.update_xaxes(
+                    domain=[0, 0.9],
+                )"""
+
                 line_by_shift_list[line][shift] = self.graph_to_json(fig)
 
         return line_by_shift_list
@@ -796,7 +800,7 @@ class up_puco_table:
 
         date_end_sql = f"{str(date_end_with_hours)[:4]}{str(date_end_with_hours)[5:7]}{str(date_end_with_hours)[8:10]}"
 
-        print(
+        """print(
             {
                 "date_start": dt_start,
                 "date_end": dt_end,
@@ -805,7 +809,7 @@ class up_puco_table:
                 "date_start_with_hours": date_start_with_hours,
                 "date_end_with_hours": date_end_with_hours,
             }
-        )
+        )"""
 
         return {
             "date_start": dt_start,

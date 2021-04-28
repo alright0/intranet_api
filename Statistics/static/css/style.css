@@ -311,20 +311,21 @@ footer p{
 
 }
 
-
-
-
-
-
-
-
-
-
 /*-----------------------------------------------*/
 
+.input_form{
+    text-align: center;
+    width:600px;
+    margin: auto;
+}
 
-
-
+.checkboxes{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 1px 1px;
+    text-align: left;
+    margin: 10px;
+}
 
 #reg_table{
     font-size: 10pt;

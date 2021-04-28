@@ -9,6 +9,12 @@ from Statistics.schemas import CameraSchema
 from Statistics.logic.queries import get_order_description
 
 
+def get_date_from_html_input(calendar_date, template):
+    "Возвращает формат даты, подходящий для создания экземпляра выпуска линии из input=date"
+
+    return datetime.strptime(calendar_date, template).date()
+
+
 def get_line_status(line):
     """Возвращает словарь состояния линии со следующими переменными:\n
     ``status`` - состояние линии ``STOP`` | ``RUN`` | ``PUCO CODE. 3 минут(ы)``\n
