@@ -4,7 +4,10 @@
 
 <head>
     <title>{% block title %}Statistics{% endblock %}</title>
-
+    {% block javascript %}
+    {{ super() }}
+    <script src="../static/js/responsive_plot.js"></script>
+    {% endblock %}
 </head>
 
 <body>
@@ -14,154 +17,137 @@
 
         {% set color_text = '#70777d' %}
         {% set color_warn = '#c05e5e' %}
-        <meta http-equiv="refresh" content="60">
+        <!--<meta http-equiv="refresh" content="60">-->
 
-        <div class="infoboard_container" id='infoboard_container_0'>
+        <div class="infoboard_container">
 
             <!--  цикл просмотра всех линий для заполнения табло -->
             {% for line in LINES %}
 
-
             {% set status = lines_dict[line]['status']%}
 
+            <!--  здесь infoboard_block получает id в зависимости от статуса линии  -->
+            {% if status|length > 5 %}
+            {% set status_color = "PUCO" %}
+            {% set message = "message" %}
+            {% else %}
+            {% set status_color = status %}
+            {% set message = "no_message" %}
+            {% endif %}
 
-            <!--  в этом месте блоку infoboard_block присваивается id в зависимости от статуса линии  -->
+            <!-- переменные  -->
+            {% set operator = lines_dict[line]['operator'] %}
+            {% set order = lines_dict[line]['order']['order'] %}
+            {% set order_description = lines_dict[line]['order']['description'] %}
+            {% set input = lines_dict[line]['input'] %}
+            {% set output = lines_dict[line]['output'] %}
 
-            <div class="infoboard_block" id="{{status}}">
 
+            <div class="infoboard_block {{ status_color }}" name="" id="{{ line }}_container">
 
                 <!--  Линия  -->
-                <div class="infoboard_block_section">
-                    <p style="font-size: 18pt; font-weight: 400;">{{ line }}</p>
+                <div class="infoboard_block_section line">
+                    <p>{{ line }}</p>
                 </div>
 
-                <!--  статус линии: если статус линии равен STOP|RUN - размер шрифта 14, иначе стандартный  -->
-                <div class="infoboard_block_section">
-
-                    {% if status == 'STOP' or status == 'RUN'%}
-                    <p style="font-size: 14pt;">{{ status }}</p>
-
-                    {% else %}
-                    <p>{{ status }}</p>
-
-                    {% endif %}
+                <!-- статус -->
+                <div class="infoboard_block_section status_{{ message }}" id="status_{{ line }}">
+                    <p id="status_{{ line }}_p">{{ status }}</p>
                 </div>
 
-
-                <!--  Кастомизация полей. 
-                Если статус линии не равен STOP|Line Not Found - добавить все блоки, 
-                иначе ничего не добавлять  -->
-                {% if status != 'STOP' and status != 'Line not found' %}
-
-                <!-- переменные внутри активной линии -->
-                {% set operator = lines_dict[line]['operator'] %}
-                {% set order = lines_dict[line]['order']['order'] %}
-                {% set order_description = lines_dict[line]['order']['description'] %}
-                {% set camera_defrate = lines_dict[line]['camera']['defrate'] %}
-                {% set camera_last_meas = lines_dict[line]['camera']['last_meas'] %}
-                {% set input = lines_dict[line]['input'] %}
-                {% set output = lines_dict[line]['output'] %}
-
-                <!--  оператор линии:  -->
-                <div class="infoboard_block_section">
-                    <p style="font-size: 10pt;">{{ operator }}</p>
+                <!--  оператор линии  -->
+                <div class="infoboard_block_section operator" id="operator_{{ line }}">
+                    <p id="operator_{{ line }}_p">{{ operator }}</p>
                 </div>
 
                 <!--  номер заказа и его описание  -->
-                <div class="infoboard_block_section">
-                    <p><b>{{order}}</b>: {{ order_description }}</p>
+                <div class="infoboard_block_section order" id="order_{{ line }}">
+                    {% if order and order_description %}
+                    <p id="order_{{ line }}_p"><b>{{order}}</b>: {{order_description}}</p>
+                    {% else %}
+                    <p id="order_{{ line }}_p"></p>
+                    {% endif %}
                 </div>
-
 
                 <!--  счетчики входа-выхода  -->
-                {% if camera_last_meas %}
-                <div class="infoboard_block_pair">
-
-                    {% else %}
-                    <div class="infoboard_block_pair" style="box-shadow: none;">
+                <div class="infoboard_block_pair" id="counter_{{ line }}">
+                    {% for counter in ["input", "output"] %}
+                    <div class="infoboard_block_small" id="{{ counter }}_{{ line }}">
+                        {% if status != "STOP" and status != "N-A" %}
+                        <p>{{ counter|upper }}:</p>
+                        <p><b>{{ lines_dict[line][counter] }}</b></p>
                         {% endif %}
-
-                        <div class="infoboard_block_small">
-                            <p>INPUT:</p>
-                            <p><b>{{ input }}</b></p>
-                        </div>
-
-                        <div class="ln"></div> <!-- разделитель -->
-
-                        <div class="infoboard_block_small">
-                            <p>OUTPUT:</p>
-                            <p><b>{{ output }}</b></p>
-                        </div>
                     </div>
-
-
-                    <!--  Кастомизация камер. Может быть одна камера или две  -->
-                    {% if camera_defrate|length == 2 %}
-
-                    <div class="infoboard_block_pair" style="box-shadow: none;">
-                        <div class="infoboard_block_small">
-
-                            {% if camera_defrate[0] > 1 %}
-                            <p style="color:#c05e5e;"><b>{{ "A: {:.2f}%".format(camera_defrate[0]) }}</b></p>
-
-                            {% else %}
-                            <p><b>{{ "A: {:.2f}%".format(camera_defrate[0]) }}</b></p>
-
-                            {% endif %}
-
-                            <!-- к-во минут с момента последнего измерения -->
-                            <p>{{ camera_last_meas[0] }}</p>
-
-
-                        </div>
-
-                        <div class="ln"></div> <!-- разделитель -->
-
-                        <div class="infoboard_block_small">
-
-                            {% if camera_defrate[1] > 1 %}
-                            <p style="color:#c05e5e;"><b>{{ "B: {:.2f}%".format(camera_defrate[1]) }}</b></p>
-
-                            {% else %}
-                            <p><b>{{ "B: {:.2f}%".format(camera_defrate[1]) }}</b></p>
-
-                            {% endif %}
-
-                            <!-- к-во минут с момента последнего измерения -->
-                            <p>{{ camera_last_meas[1] }}</p>
-
-                        </div>
-                    </div>
-
-                    <!--  Если количество камер = 1, то поместить в контейнер другого типа  -->
-                    {% elif camera_defrate|count == 1 %}
-                    <div class="infoboard_block_section" style="box-shadow: none;">
-
-                        {% if camera_defrate[0] > 1 %}
-                        <p style="color:#c05e5e;"><b>{{ "{:.2f}%".format(camera_defrate[0]) }}</b></p>
-
-                        {% else %}
-                        <p><b>{{ "{:.2f}%".format(camera_defrate[0]) }}</b></p>
-
-                        {% endif %}
-
-                        <!--  Проверка ошибок: если информации о браке нет, то передать, то не передавать описание  -->
-                        {% if camera_last_meas %}
-                        <p>{{ camera_last_meas[0] }}</p>
-
-                        {% endif %}
-
-                    </div>
-
-                    {% endif %}
-
-                    {% endif %}
+                    {% endfor %}
                 </div>
 
-                {% endfor %}
+
+                <!--  Кастомизация камер  -->
+                {% if 'camera' in lines_dict[line] and lines_dict[line]['camera'] != {} %}
+
+                {% set camera_defrate = lines_dict[line]['camera']['defrate'] %}
+                {% set camera_last_meas = lines_dict[line]['camera']['last_meas'] %}
+
+                <div class="infoboard_block_pair last_block" id="camera_{{ line }}">
+
+                    {% for camera in camera_defrate %}
+                    <div class="infoboard_block_small">
+
+                        {% if camera_defrate[loop.index0] > 1 %}
+                        <p style="color:#c05e5e;"><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
+
+                        {% else %}
+                        <p><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
+
+                        {% endif %}
+
+                        <!-- к-во минут с момента последнего измерения -->
+                        <p>{{ camera_last_meas[loop.index0] }}</p>
+
+
+                    </div>
+
+                    {% endfor %}
+                </div>
+
+                {% endif %}
             </div>
-            <p style="text-align: center; margin: 10px; font-size: 8pt;">Обновлено в {{now}}</p>
-            {% endblock %}
+            {% endfor %}
+
+        </div>
+
+        <!-- <form action="#" method="post" id="submit">
+            <input type="submit" name="sumbit" value="обновить" id="subm_button">
+        </form> -->
+        <p style="text-align: center; margin: 10px; font-size: 8pt;" id="updated"></p>
+
+        <script>
+            update_current_situation();
+            /* обновление графиков при обновлении календаря и списка линий */
+
+            var timeout = 1000 * 30
+
+            setTimeout(function run() {
+                update_current_situation();
+                setTimeout(run, timeout);
+            }, timeout);
+
+
+        </script>
+
+
+        <script>
+            /* обновление графиков при обновлении календаря и списка линий */
+            $(document).ready(function () {
+                $("#submit").submit(function (event) {
+                    update_current_situation();
+
+                    event.preventDefault();
+                });
+            });
+        </script>
+
+        {% endblock %}
 
     </main>
 

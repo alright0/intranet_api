@@ -118,3 +118,88 @@ function daily_report_return(request_form) {
 
     })
 };
+
+
+function update_current_situation() {
+    $.ajax({
+        type: "POST",
+        url: "#",
+        success: function (response) {
+            var answer = jQuery.parseJSON(response);
+            $.each(answer, function (line) {
+
+                var line_info = answer[line];
+
+                /* если статус линии меняется, необходимо поменять сообщение в блоке статуса и класс */
+                var status = line_info.status;
+                var operator = line_info.operator;
+                var input = line_info.input;
+                var output = line_info.output;
+                var defect_rate = line_info.camera;
+
+                if (line_info.order.order && line_info.order.description) {
+                    var order = `<b>${line_info.order.order}</b>: ${line_info.order.description}`;
+                } else {
+                    var order = "";
+                };
+
+                $(`#status_${line}_p`).text(status);
+
+                if (status.length <= 5) {
+                    $(`#status_${line}`).attr('class', `infoboard_block_section status_no_message`);
+                    $(`#${line}_container`).attr('class', `infoboard_block ${status}`);
+                } else {
+                    $(`#status_${line}`).attr('class', `infoboard_block_section status_message`);
+                    $(`#${line}_container`).attr('class', `infoboard_block PUCO`);
+                };
+
+                $(`#operator_${line}_p`).text(operator);
+                $(`#order_${line}_p`).html(order);
+
+                if (status != "STOP" && status != "N-A") {
+                    $(`#input_${line}`).html(`<p>INPUT:</p><p><b>${input}</b></p>`);
+                    $(`#output_${line}`).html(`<p>OUTPUT:</p><p><b>${output}</b></p>`);
+                };
+
+                if (Object.keys(defect_rate).length > 0) {
+                    $(`#camera_${line}`).remove();
+                    $(`#${line}_container`).append(
+                        `<div class="infoboard_block_pair last_block" id="camera_${line}">
+                        </div>`
+                    );
+
+                    $.each(defect_rate.defrate, function (cam) {
+
+                        var percent = parseFloat(defect_rate.defrate[Number(cam)]).toFixed(2);
+                        var minutes_ago = defect_rate.last_meas[Number(cam)];
+                        var style_is_red = is_red(percent, 1);
+
+
+                        $(`#camera_${line}`).append(
+                            `<div class="infoboard_block_small" >
+                                <p ${style_is_red}><b>${percent}%</b></p>
+                                <p>${minutes_ago}</p>
+                            </div>`)
+                    });
+                };
+
+                var updated = new Date().toTimeString().slice(0, 8);
+                $("#updated").html(`Обновлено в ${updated}`);
+
+
+            })
+        },
+        error: { "message": "error" },
+
+
+    });
+};
+
+// функция помечает значения больше указанного количества процентов красным цветом
+function is_red(percent, rate) {
+    if (percent > rate) {
+        return 'style="color:#c05e5e;"';
+    } else {
+        return "";
+    }
+};

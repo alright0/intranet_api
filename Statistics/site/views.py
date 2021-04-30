@@ -55,23 +55,12 @@ def detailed_daily_report():
     )
 
 
-"""@site.route("/detailed_daily_report", methods=["GET", "POST"])
-def detailed_daily_report():
-
-    if request.method == "POST":
-        print(request.form.get("123"))
-
-    line_report = up_puco_table(period="day", lines=["LZ-02"])
-    table = line_report.camera_defrate_table()
-
-    stops_plot = line_report.stops_trace_graph()
-
-    return render_template(
-        "detailed_daily_report.html", table=table, stops_plot=stops_plot, lines=LINES
-    )"""
-
-
-@site.route("/daily_report", methods=["GET"])
+@site.route(
+    "/daily_report",
+    methods=[
+        "GET",
+    ],
+)
 def daily_report():
     """Здесь будет страница отчета за последние сутки(или за указанные)"""
 
@@ -79,20 +68,34 @@ def daily_report():
 
 
 # домашняя страница
-@site.route("/", methods=["GET"])
+@site.route("/", methods=["GET", "POST"])
 def index():
     """Главная страница, содержащая табло работы линий в реальном времени"""
 
-    logging.info("я сообщение лога")
+    if request.method == "POST":
+        lines_status = []
+
+        for line in LINES:
+            lines_status.append(get_line_status(line))
+
+        return json.dumps(dict(zip(LINES, lines_status)))
 
     lines_status = []
     for line in LINES:
-        lines_status.append(get_line_status(line))
+        lines_status.append(
+            dict(
+                status="",
+                operator="",
+                input=0,
+                output=0,
+                order={"order": "", "description": ""},
+                camera={},
+            )
+        )
 
     lines_dict = dict(zip(LINES, lines_status))
-    now = datetime.strftime(datetime.now(), "%H:%M:%S")
 
-    return render_template("index.html", LINES=LINES, lines_dict=lines_dict, now=now)
+    return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
 
 
 @site.route("/production_plan_staff", methods=["GET"])
@@ -100,14 +103,11 @@ def production_plan_staff():
     """Страница с графиком выработки для персонала"""
 
     info = up_puco_table()
-
     plot = info.subplots(style="mini")
-    now = datetime.strftime(datetime.now(), "%H:%M:%S")
 
     return render_template(
         "production_plan_staff.html",
         plot=plot,
-        now=now,
     )
 
 

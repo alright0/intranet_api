@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 
+
 import pandas as pd
 from config import IBEA_ADDRESS, IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from flask import jsonify
@@ -13,6 +14,11 @@ def get_date_from_html_input(calendar_date, template):
     "Возвращает формат даты, подходящий для создания экземпляра выпуска линии из input=date"
 
     return datetime.strptime(calendar_date, template).date()
+
+
+def meas(tm, mes):
+    print(datetime.now() - tm, mes)
+    return datetime.now()
 
 
 def get_line_status(line):
@@ -53,13 +59,24 @@ def get_line_status(line):
     )
 
     try:
+
+        tm = datetime.now()
+        tm = meas(tm, f"{line} 1. старт")
+
         # получение списка параметров линии
         line_status = LineStatus.get_line_param(line)
+
+        tm = meas(tm, f"{line} 2. запрос параметров линии")
 
         if int(line_status.shift):
 
             line_status_dict["status"] = LineStatus.get_status(line)
+
+            tm = meas(tm, f"{line} 3. запрос статуса")
+
             line_status_dict["operator"] = fc_users.get_operator_name(line)
+
+            tm = meas(tm, f"{line} 4. запрос имени оператора")
 
             line_status_dict["input"] = "{:,}".format(
                 line_status.counter_start
@@ -76,7 +93,7 @@ def get_line_status(line):
                 [line_status.order]
             )[line_status.order]
 
-            # line_status_dict["camera"] = {}
+            tm = meas(tm, f"{line} 5. заказы")
 
             # процент брака по камерам. Возвращается список от 0 до 2 элементов
             try:
@@ -84,6 +101,7 @@ def get_line_status(line):
 
                     cam_sides = []  # список процетов брака
                     cam_time = []  # время последнего обновления
+                    line_status_dict["camera"] = {}
 
                     for cam_side in IBEA_CAMERA_MAP[line]:
 
@@ -92,6 +110,8 @@ def get_line_status(line):
                             .order_by(Camera.date_now.desc())
                             .first()
                         )
+
+                        tm = meas(tm, f"{line} 6. запрос камеры")
 
                         cam_sides.append(
                             cam_info.rejected / cam_info.total * 100
@@ -108,9 +128,7 @@ def get_line_status(line):
 
                     line_status_dict["camera"]["defrate"] = cam_sides
                     line_status_dict["camera"]["last_meas"] = cam_time
-                else:
-                    line_status_dict["camera"]["defrate"] = []
-                    line_status_dict["camera"]["last_meas"] = []
+
             except:
                 line_status_dict["camera"]["defrate"] = [0.0]  # ["--/--"]
                 line_status_dict["camera"]["last_meas"] = 0
@@ -118,9 +136,10 @@ def get_line_status(line):
             line_status_dict["status"] = "STOP"
 
     except AttributeError:
-        line_status_dict["status"] = "Line not found"
+        line_status_dict["status"] = "N-A"
 
     finally:
+        tm = meas(tm, f"{line} 7. финал")
         return line_status_dict
 
 

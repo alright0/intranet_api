@@ -229,13 +229,13 @@ class LineStatus(Base_fc):
         if status == "00000" and not feed:
             description = "RUN"
         elif status == "00000" and feed:
-            description = f"Причина не определена. {feed} минут(ы)"
+            description = f"{feed} минут(ы). Причина не определена"
         else:
-            description = f"""{(
+            description = f"""{feed} минут(ы). {(
                 up_puco_code.query.with_entities(up_puco_code.name_ru)
                 .filter(up_puco_code.code == status)
                 .first()[0]
-            )}. {feed} минут(ы)"""
+            )}"""
 
         return description
 

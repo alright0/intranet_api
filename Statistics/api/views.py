@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 
-from flask import jsonify, Blueprint
+from flask import jsonify, Blueprint, request
 
 from config import VM
 from Statistics.logic.logic import get_camera_now, makedate
@@ -12,7 +12,7 @@ camera = Blueprint("camera", __name__)
 
 
 # api-ответ, возвращающий json из EN-VM01.ibea_agregate
-@camera.route("/camera/<line>", methods=["GET"])
+@camera.route("/camera/<line>", methods=["GET", "POST"])
 def get_camera_info(line):
 
     one = Camera.query.filter(Camera.line == line).limit(5)
@@ -43,7 +43,7 @@ def get_camera_info(line):
 
 
 # api-ответ Нахождение последней записи в базе
-@camera.route("/camera/last/<line>", methods=["GET"])
+@camera.route("/camera/last/<line>", methods=["GET", "POST"])
 def get_camera_info_last(line):
 
     serialized = get_camera_now(line)

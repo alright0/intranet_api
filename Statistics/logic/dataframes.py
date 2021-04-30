@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
+import numba
 import plotly.express as px
 import plotly.graph_objects as go
 from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
@@ -70,6 +71,8 @@ class up_puco_table:
         сформированную по датам и сменам, с буквами смен и выпуском линий.\n
         """
 
+        tm = datetime.now()
+
         agregated_lines_df = self.data.copy()
 
         # переименование для заголовков на русском
@@ -128,6 +131,8 @@ class up_puco_table:
             .hide_index()
             .render()
         )
+
+        print(datetime.now() - tm, "таблица выпуска линий")
 
         return html
 
@@ -539,10 +544,6 @@ class up_puco_table:
                     margin=dict(l=10, r=10, t=30, b=10),
                     yaxis2=dict(showgrid=False),
                 )
-
-                """fig.update_xaxes(
-                    domain=[0, 0.9],
-                )"""
 
                 line_by_shift_list[line][shift] = self.graph_to_json(fig)
 
