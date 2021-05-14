@@ -49,5 +49,5 @@ class RegistrationForm(FlaskForm):
             raise ValidationError("Пожалуйста, выберите другой адрес почтового ящика")
         if "@silganmp.com" not in str(email.data).lower():
             raise ValidationError(
-                "Адрес почтового ящика должен принадлежать домену silganmp.com"
+                "Адрес почтового ящика должен принадлежать домену interdomain.com"
             )

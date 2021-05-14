@@ -27,8 +27,8 @@
     {% block nav %}
     <div class="nav">
         <div class="topnav">
-            <a href="{{ url_for('site.detailed_daily_report') }}">Подробный отчет за смену</a>
-            <a href="{{ url_for('site.daily_report') }}">Отчет за смену</a>
+            <a href="{{ url_for('site.detailed_daily_report') }}">Отчет за смену</a>
+            <!--<a href="{{ url_for('site.daily_report') }}">Отчет за смену</a>-->
             <a href="{{ url_for('site.production_plan') }}">План производства</a>
             <a href="{{ url_for('site.production_plan_staff') }}">Табло</a>
             {% if current_user.is_anonymous %}

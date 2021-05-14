@@ -7,6 +7,7 @@ import pandas as pd
 
 from datetime import date, datetime, timedelta
 from flask import Flask
+from flask_caching import Cache
 from flask_login import LoginManager, UserMixin
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -31,10 +32,7 @@ login.login_message = "Вы должны авторизоваться, чтоб�
 client = app.test_client()
 
 mail = Mail(app)
-
-# celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-# celery.conf.update(app.config)
-
+cache = Cache(app)
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
     f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",
@@ -42,7 +40,7 @@ cam_engine = create_engine(
 
 # создание подключения к базе EN-DB05
 fc_engine = create_engine(
-    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}",
+    f"postgresql+psycopg2://{FC['user']}:{FC['password']}@{FC['host']}/{FC['database']}"
 )
 
 

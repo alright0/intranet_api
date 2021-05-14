@@ -7,13 +7,12 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
-import numba
 import plotly.express as px
 import plotly.graph_objects as go
-from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from dateutil.relativedelta import relativedelta
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
+from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from Statistics.logic.queries import get_order_description
 from Statistics.models import *
 from Statistics.schemas import CameraSchema
@@ -50,8 +49,8 @@ class up_puco_table:
         self.date_end = dates["date_end"]  # 31.01.2021 00:00:00
         self.date_start_with_hours = dates[
             "date_start_with_hours"
-        ]  # 01.01.2021 00:80:00
-        self.date_end_with_hours = dates["date_end_with_hours"]  # 31.01.2021 00:80:00
+        ]  # 01.01.2021 00:08:00
+        self.date_end_with_hours = dates["date_end_with_hours"]  # 31.01.2021 00:08:00
         self.date_start_sql = dates["date_start_sql"]  # 20210101
         self.date_end_sql = dates["date_end_sql"]  # 20210131
 
@@ -70,8 +69,6 @@ class up_puco_table:
         в виде отрендеренного html, который необходимо встроить в страницу\n
         сформированную по датам и сменам, с буквами смен и выпуском линий.\n
         """
-
-        tm = datetime.now()
 
         agregated_lines_df = self.data.copy()
 
@@ -131,8 +128,6 @@ class up_puco_table:
             .hide_index()
             .render()
         )
-
-        print(datetime.now() - tm, "таблица выпуска линий")
 
         return html
 
@@ -283,15 +278,8 @@ class up_puco_table:
             row = math.ceil((i + 1) / 5)
             col = math.ceil(i - 5 * (i // 5) + 1)
 
-            # раскрашивание в зависимости от выработки
-            color_list = []
-
-            color_list = agregated_lines_df[self.lines[i]].apply(
-                lambda x: "green"
-                if x > LINE_OUTPUT[self.lines[i]]
-                else "firebrick"
-                if x < LINE_OUTPUT[self.lines[i]] / 25
-                else "#003882"
+            bar_color_df = self.__subplots_get_colors_for_bars(
+                agregated_lines_df[["date_stop", "shift", self.lines[i]]]
             )
 
             subplot_fig.add_trace(
@@ -299,7 +287,7 @@ class up_puco_table:
                     x=agregated_lines_df["letter"],
                     y=agregated_lines_df[self.lines[i]],
                     name=self.lines[i],
-                    marker_color=color_list,
+                    marker_color=bar_color_df,
                     hoverinfo="text",
                     hovertext="Дата: "
                     + agregated_lines_df["date_stop"].astype(str)
@@ -641,7 +629,6 @@ class up_puco_table:
     def camera_defrate_table(self):
 
         camera_table_df = self.__parse_camera()
-        camera_dict = dict()
 
         if not camera_table_df.empty:
 
@@ -801,17 +788,6 @@ class up_puco_table:
 
         date_end_sql = f"{str(date_end_with_hours)[:4]}{str(date_end_with_hours)[5:7]}{str(date_end_with_hours)[8:10]}"
 
-        """print(
-            {
-                "date_start": dt_start,
-                "date_end": dt_end,
-                "date_start_sql": date_start_sql,
-                "date_end_sql": date_end_sql,
-                "date_start_with_hours": date_start_with_hours,
-                "date_end_with_hours": date_end_with_hours,
-            }
-        )"""
-
         return {
             "date_start": dt_start,
             "date_end": dt_end,
@@ -822,7 +798,8 @@ class up_puco_table:
         }
 
     # READY: функция возвращает список линий, находящихся в экземпляре
-    def __get_valid_lines(self, lines):
+    @staticmethod
+    def __get_valid_lines(lines):
         """Принимает фрейм из get_month_table и возвращает список линий, который в нем находится"""
 
         valid_lines = []
@@ -834,6 +811,26 @@ class up_puco_table:
         valid_lines.sort()
 
         return valid_lines
+
+    @staticmethod
+    def __subplots_get_colors_for_bars(line_output_df):
+        """Раскрашивание в зависимости от выработки"""
+
+        today_str = str(datetime.today().strftime("%d.%m.%Y"))
+        shift_str = 1 if datetime.today().hour > 8 and datetime.today().hour < 20 else 2
+
+        line = list(line_output_df.columns.values)[-1]
+
+        return line_output_df.apply(
+            lambda x: "orange"
+            if x[0] == today_str and x[1] == shift_str
+            else "green"
+            if x[line] > LINE_OUTPUT[line]
+            else "firebrick"
+            if x[line] < LINE_OUTPUT[line] / 25
+            else "#003882",
+            axis=1,
+        )
 
     # NOTE: на основе этого фрейма строятся все остальные
     def __get_raw_df_by_line(self, line):
@@ -1153,8 +1150,3 @@ class up_puco_table:
 
             return camera_dict
         return camera_table_df
-
-
-if __name__ == "__main__":
-
-    pass

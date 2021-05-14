@@ -7,13 +7,21 @@ from config import *
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from Statistics.forms import LoginForm
+from Statistics import cache
 from Statistics.handlers import access_denied, default_errhandler
 from Statistics.logic.logic import *
-from Statistics.models import Camera
+from Statistics.models import Camera, up_puco_export
 from Statistics.schemas import CameraSchema
 from werkzeug.exceptions import HTTPException
+from random import random
 
 site = Blueprint("site", __name__)
+
+
+@site.route("/test", methods=["GET", "POST"])
+@cache.cached(timeout=10)
+def cache_test():
+    return str(random())
 
 
 @site.route("/order_info", methods=["GET", "POST"])
@@ -40,10 +48,6 @@ def detailed_daily_report():
         new_response = up_puco_table(date=calendar_date, lines=lines_list, period="day")
 
         return json.dumps(new_response.stops_trace_graph())
-
-        """l_dict = {line: {1: {"data": 1, "layout": 2}, 2: "xyz"} for line in lines_list}
-        print(l_dict)
-        return json.dumps(l_dict)"""
 
     # line_report = up_puco_table(period="day", lines=["LZ-02"])
     table = "line_report.camera_defrate_table()"
@@ -104,15 +108,14 @@ def production_plan_staff():
 
     info = up_puco_table()
     plot = info.subplots(style="mini")
+    now = datetime.now().strftime("%H:%M:%s")
 
-    return render_template(
-        "production_plan_staff.html",
-        plot=plot,
-    )
+    return render_template("production_plan_staff.html", plot=plot, now=now)
 
 
 # TODO: добавить возможность выбора периодов
 @site.route("/production_plan", methods=["GET", "POST"])
+@cache.cached(timeout=60)
 def production_plan():
     """План производства с подробным графиком.
     Всегда показывает текущий месяц, если не указано другое"""

@@ -1,3 +1,4 @@
+// функция, добавляющая адаптивность для графиков plotly
 function responsive_plot(plot_json, div_id, WIDTH = 99, HEIGHT = 50) {
     var d3 = Plotly.d3;
 
@@ -27,7 +28,7 @@ function responsive_plot(plot_json, div_id, WIDTH = 99, HEIGHT = 50) {
     });
 };
 
-/*функция возвращает ответы сервера в production plan*/
+// функция возвращает ответы сервера в production plan
 function get_response(requst_form) {
     var form = $("#" + requst_form);
     $.ajax({
@@ -60,14 +61,13 @@ function get_response(requst_form) {
 };
 
 
-/* функция вызывается из источника по событию on_click 
-и отмечает все чекбоксы с указанным именем */
+// функция тмечает все чекбоксы с указанным именем
 function toggle_all(source, elem_name) {
 
-    /* обратиться к каждому элементу по имени */
+    // обратиться к каждому элементу по имени
     checkboxes = document.getElementsByName(elem_name);
 
-    /* передать каждому элементу состояние чекбокса, из которого вызывается скрипт */
+    // передать каждому элементу состояние чекбокса, из которого вызывается скрипт
     for (var i = 0, n = checkboxes.length; i < n; i++) {
         checkboxes[i].checked = source.checked;
     }
@@ -83,28 +83,28 @@ function daily_report_return(request_form) {
 
             var plots = jQuery.parseJSON(response);
 
-            /* очистка контейнера с графиками */
+            // очистка контейнера с графиками
             $("#main_container").empty();
 
             if (Object.keys(plots).length > 0) {
-                /* for each для списка линий */
+                // for each для списка линий
                 $.each(plots, function (line) {
                     $("#main_container").append(
                         `<div class="graph_container" id="graph_container_${line}"></div>`);
 
                     var plot = plots[line];
 
-                    /* for each для списка смен */
+                    // for each для списка смен 
                     $.each(plot, function (shift) {
 
                         var graph_info = jQuery.parseJSON(plot[shift]);
 
-                        /* добавление в основной график контейнеров для графиков */
+                        // добавление в основной график контейнеров для графиков 
                         $(`#graph_container_${line}`).append(
                             `<div class="graph_container" id="graph_container_${line}_${shift}">
                     </div>`);
 
-                        /* создание графиков */
+                        // создание графиков
                         responsive_plot(graph_info, `graph_container_${line}_${shift}`);
 
                     });
@@ -130,13 +130,14 @@ function update_current_situation() {
 
                 var line_info = answer[line];
 
-                /* если статус линии меняется, необходимо поменять сообщение в блоке статуса и класс */
+                // если статус линии меняется, необходимо поменять сообщение в блоке статуса и класс
                 var status = line_info.status;
                 var operator = line_info.operator;
                 var input = line_info.input;
                 var output = line_info.output;
                 var defect_rate = line_info.camera;
 
+                // создание строки заказа 
                 if (line_info.order.order && line_info.order.description) {
                     var order = `<b>${line_info.order.order}</b>: ${line_info.order.description}`;
                 } else {
@@ -145,6 +146,7 @@ function update_current_situation() {
 
                 $(`#status_${line}_p`).text(status);
 
+                // сообщение линии: STOP, RUN, N-A или детальное сообщение об остановке
                 if (status.length <= 5) {
                     $(`#status_${line}`).attr('class', `infoboard_block_section status_no_message`);
                     $(`#${line}_container`).attr('class', `infoboard_block ${status}`);
@@ -153,36 +155,47 @@ function update_current_situation() {
                     $(`#${line}_container`).attr('class', `infoboard_block PUCO`);
                 };
 
-                $(`#operator_${line}_p`).text(operator);
-                $(`#order_${line}_p`).html(order);
+                $(`#operator_${line}_p`).text(operator); // имя оператора
+                $(`#order_${line}_p`).html(order); // номер и описание заказа
 
+                // показания счетчиков, или 0, если линия стоит
                 if (status != "STOP" && status != "N-A") {
                     $(`#input_${line}`).html(`<p>INPUT:</p><p><b>${input}</b></p>`);
                     $(`#output_${line}`).html(`<p>OUTPUT:</p><p><b>${output}</b></p>`);
+
+                    /** ключ камера для возвращаемоего словаря есть у всех линий, но только у тех 
+                     * линий, которые реально имеют словарь наполняется значениями defrate b last_meas
+                    */
+                    if (Object.keys(defect_rate).length > 0) {
+                        $(`#camera_${line}`).remove();
+                        $(`#${line}_container`).append(
+                            `<div class="infoboard_block_pair last_block" id="camera_${line}">
+                            </div>`
+                        );
+
+                        $.each(defect_rate.defrate, function (cam) {
+
+                            var percent = parseFloat(defect_rate.defrate[Number(cam)]).toFixed(2);
+                            var minutes_ago = defect_rate.last_meas[Number(cam)];
+                            var style_is_red = is_red(percent, 1);
+
+
+                            $(`#camera_${line}`).append(
+                                `<div class="infoboard_block_small" >
+                                    <p ${style_is_red}><b>${percent}%</b></p>
+                                    <p>${minutes_ago}</p>
+                                </div>`)
+                        });
+                    };
+
+                    // обнулить значения счетчиков и удалить показания камер, если линии остановлены
+                } else {
+                    $(`#input_${line}`).html(`<p>INPUT:</p><p><b>0</b></p>`);
+                    $(`#output_${line}`).html(`<p>OUTPUT:</p><p><b>0</b></p>`);
+                    $(`#camera_${line}`).remove()
                 };
 
-                if (Object.keys(defect_rate).length > 0) {
-                    $(`#camera_${line}`).remove();
-                    $(`#${line}_container`).append(
-                        `<div class="infoboard_block_pair last_block" id="camera_${line}">
-                        </div>`
-                    );
-
-                    $.each(defect_rate.defrate, function (cam) {
-
-                        var percent = parseFloat(defect_rate.defrate[Number(cam)]).toFixed(2);
-                        var minutes_ago = defect_rate.last_meas[Number(cam)];
-                        var style_is_red = is_red(percent, 1);
-
-
-                        $(`#camera_${line}`).append(
-                            `<div class="infoboard_block_small" >
-                                <p ${style_is_red}><b>${percent}%</b></p>
-                                <p>${minutes_ago}</p>
-                            </div>`)
-                    });
-                };
-
+                // сообщение о времени последнего обновления страницы
                 var updated = new Date().toTimeString().slice(0, 8);
                 $("#updated").html(`Обновлено в ${updated}`);
 

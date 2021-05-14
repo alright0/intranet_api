@@ -116,16 +116,13 @@
 
         </div>
 
-        <!-- <form action="#" method="post" id="submit">
-            <input type="submit" name="sumbit" value="обновить" id="subm_button">
-        </form> -->
         <p style="text-align: center; margin: 10px; font-size: 8pt;" id="updated"></p>
 
         <script>
             update_current_situation();
             /* обновление графиков при обновлении календаря и списка линий */
 
-            var timeout = 1000 * 30
+            var timeout = 1000 * 120
 
             setTimeout(function run() {
                 update_current_situation();
