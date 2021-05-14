@@ -53,8 +53,6 @@ def reset_password(token):
 
         session_cam().commit()
 
-        print(user.password)
-
         flash("Ваш пароль сброшен!")
         return redirect(url_for("users.login"))
     return render_template("reset_password.html", form=form)

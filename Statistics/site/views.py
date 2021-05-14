@@ -108,14 +108,13 @@ def production_plan_staff():
 
     info = up_puco_table()
     plot = info.subplots(style="mini")
-    now = datetime.now().strftime("%H:%M:%s")
+    now = datetime.now().strftime("%H:%M:%S")
 
     return render_template("production_plan_staff.html", plot=plot, now=now)
 
 
 # TODO: добавить возможность выбора периодов
 @site.route("/production_plan", methods=["GET", "POST"])
-@cache.cached(timeout=60)
 def production_plan():
     """План производства с подробным графиком.
     Всегда показывает текущий месяц, если не указано другое"""

@@ -1018,12 +1018,15 @@ class up_puco_table:
         period_2020 = make_list_of_dates(
             date(2020, 1, 1), date(2020, 12, 31), "DADACDCDBCBCABAB"
         )
-        period_2021 = make_list_of_dates(
-            date(2021, 1, 1), date(2022, 1, 1), "CBDCDCADADBABACB"
+        period_2021_0 = make_list_of_dates(
+            date(2021, 1, 1), date(2021, 5, 2), "CBDCDCADADBABACB"
+        )
+        period_2021_1 = make_list_of_dates(
+            date(2021, 5, 3), date(2022, 1, 1), "DCDCADADBABACBCB"
         )
 
         # Сюда добавляются все периоды смен, в хронологическом порядке
-        period_patterned = pd.concat([period_2020, period_2021])
+        period_patterned = pd.concat([period_2020, period_2021_0, period_2021_1])
 
         period_now = make_list_of_dates(self.date_start, self.date_end)
 
