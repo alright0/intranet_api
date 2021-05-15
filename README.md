@@ -52,7 +52,33 @@
 }
 ```
 2. **../camera/\<line\>** - возвращает то же, что и первый ответ, только по полю "line", которое может иметь более одного значения "line_side" 
-
-
+```
+[
+    {
+        "date_now": "Mon, 22 Mar 2021 16:08:49 GMT",
+        "id": 24203,
+        "job": "10121",
+        "last_part": "Mon, 22 Mar 2021 15:47:49 GMT",
+        "line": "LZ-02",
+        "line_side": "LZ-02 A",
+        "message": "OK",
+        "rejected": 0,
+        "start_time": "Mon, 22 Mar 2021 15:47:49 GMT",
+        "total": 0
+    },
+    {
+        "date_now": "Mon, 22 Mar 2021 16:22:49 GMT",
+        "id": 24388,
+        "job": "10121",
+        "last_part": "Mon, 22 Mar 2021 15:47:49 GMT",
+        "line": "LZ-02",
+        "line_side": "LZ-02 B",
+        "message": "OK",
+        "rejected": 0,
+        "start_time": "Mon, 22 Mar 2021 15:45:21 GMT",
+        "total": 0
+    },
+]
+```
 
 <!-- <p align="center"><img width=700px src=""></p> -->
