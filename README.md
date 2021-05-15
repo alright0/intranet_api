@@ -17,8 +17,13 @@
 
 Поскольку основная <a href="https://github.com/alright0/intranet_api/blob/master/Statistics/logic/dataframes.py">логика</a> написана в ООП стиле, это позволяет получать и обрабатывать данные довольно гибко за желаемый период времени(необходимо указать параметры при создании экземпляра класса up_puco_table. подробности в docstring к классу по <a href="https://github.com/alright0/intranet_api/blob/master/Statistics/logic/dataframes.py">ссылке</a>). Все таблицы и графики являются экземплярами класса, поэтому их можно просто вызвать и получить готовый набор данных, который необходимо будет встроить в html. При создании этой страницы очень помог опыт, полученный при создании <a href="https://github.com/alright0/Dashboard">приложений на dash</a>.
 
+**3. detailed daily report:**
+Здесь находится информация о выпуске указанных линий за указанный срок
+<p align="center"><img width=700px src="https://user-images.githubusercontent.com/71926912/118360225-55d67180-b58f-11eb-9dac-44f9eca7e581.PNG"></p>
 
-В планах добавление пользователей с разными уровнями доступа к информации
+**4. Табло для персонала:**
+Здесь находится график(тот же самый, что и в production plan), который обновляется с заданным интервалом. Транслируется на табло для показа персоналу
+<p align="center"><img width=700px src="https://user-images.githubusercontent.com/71926912/118360498-95ea2400-b590-11eb-81cf-6a755f6f54bb.PNG"></p>
 
 <b>API</b>
 
