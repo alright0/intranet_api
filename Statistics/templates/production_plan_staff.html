@@ -19,22 +19,36 @@
         {% block nav %}{% endblock %}
         {% block content %}
 
-        <meta http-equiv="refresh" content="300">
+        <!--<meta http-equiv="refresh" content="300">-->
 
-            <div class="production_plan_graphs_staff">
+        <div class="production_plan_graphs_staff">
 
-                <div class="production_plan_stdblock" id="main_graph">
-                    <script>
-                        responsive_plot({{ plot | safe}}, "main_graph", 99, 88);
-                    </script>
-                    
-                </div>
-                <div class="updated">
-                    <p class="updated_p" style="font-size: 8pt;">Обновлено в {{now}}</p>
-                </div>
+            <div class="production_plan_stdblock" id="main_graph">
+                <script>
+                    responsive_plot({{ plot | safe}}, "main_graph", 99, 85);
+                </script>
+
             </div>
+            <div class="updated">
+                <p class="updated_p" id="time_now_p" style="font-size: 8pt;">Обновлено в {{now}}</p>
+            </div>
+        </div>
+        <script>
+            //<!--pp_staff_update("main_graph");-->
 
-            {% endblock %}
+            /* обновление графиков при обновлении календаря и списка линий */
+            var timeout = 1000 * 300
+
+            setTimeout(function run() {
+                pp_staff_update("main_graph");
+                setTimeout(run, timeout);
+            }, timeout);
+
+
+        </script>
+
+
+        {% endblock %}
     </main>
 
 

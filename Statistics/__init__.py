@@ -16,6 +16,7 @@ from pathlib import Path
 from logging.handlers import SMTPHandler, RotatingFileHandler
 from flask_mail import Mail
 
+
 from config import VM, FC, Config
 
 
@@ -33,6 +34,8 @@ client = app.test_client()
 
 mail = Mail(app)
 cache = Cache(app)
+
+
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
     f"postgresql+psycopg2://{VM['user']}:{VM['password']}@{VM['host']}/{VM['database']}",

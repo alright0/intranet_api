@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import sqlalchemy as db
 from config import *
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, url_for, jsonify
 from flask_login import current_user, login_required
 from Statistics.forms import LoginForm
 from Statistics import cache
@@ -49,14 +49,9 @@ def detailed_daily_report():
 
         return json.dumps(new_response.stops_trace_graph())
 
-    # line_report = up_puco_table(period="day", lines=["LZ-02"])
     table = "line_report.camera_defrate_table()"
 
-    stops_plot = {"1": " 1", "2": " 2"}  # line_report.stops_trace_graph()
-
-    return render_template(
-        "detailed_daily_report.html", table=table, stops_plot=stops_plot, lines=LINES
-    )
+    return render_template("detailed_daily_report.html", table=table, lines=LINES)
 
 
 @site.route(
@@ -102,9 +97,13 @@ def index():
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
 
 
-@site.route("/production_plan_staff", methods=["GET"])
+@site.route("/production_plan_staff", methods=["GET", "POST"])
 def production_plan_staff():
     """Страница с графиком выработки для персонала"""
+
+    if request.method == "POST":
+        # print(up_puco_table().subplots(style="mini"))
+        return up_puco_table().subplots(style="mini")
 
     info = up_puco_table()
     plot = info.subplots(style="mini")

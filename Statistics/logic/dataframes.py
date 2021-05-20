@@ -3,7 +3,7 @@ from __future__ import annotations
 import calendar
 import json
 import math
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 import numpy as np
 import pandas as pd
@@ -816,18 +816,33 @@ class up_puco_table:
     def __subplots_get_colors_for_bars(line_output_df):
         """Раскрашивание в зависимости от выработки"""
 
-        today_str = str(datetime.today().strftime("%d.%m.%Y"))
-        shift_str = 1 if datetime.today().hour > 8 and datetime.today().hour < 20 else 2
+        def today_date_shift_str():
+            """переменные обернуты в функцию так как в противном случае
+            они кешируются и возвращают старые значения"""
+
+            # если время <8 часов, то дата считается предыдущей
+            if datetime.today().hour < 8:
+                today_str = datetime.today() - timedelta(days=1)
+            else:
+                today_str = datetime.today()
+
+            today_str = str(today_str.strftime("%d.%m.%Y"))
+            shift_str = (
+                1 if datetime.today().hour > 8 and datetime.today().hour < 20 else 2
+            )
+
+            return {"today": today_str, "shift": shift_str}
 
         line = list(line_output_df.columns.values)[-1]
 
         return line_output_df.apply(
             lambda x: "orange"
-            if x[0] == today_str and x[1] == shift_str
+            if (x["date_stop"] == today_date_shift_str()["today"])
+            & (x["shift"] == today_date_shift_str()["shift"])
             else "green"
             if x[line] > LINE_OUTPUT[line]
             else "firebrick"
-            if x[line] < LINE_OUTPUT[line] / 25
+            if x[line] < LINE_OUTPUT[line] / 4
             else "#003882",
             axis=1,
         )

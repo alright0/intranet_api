@@ -216,3 +216,30 @@ function is_red(percent, rate) {
         return "";
     }
 };
+
+// функция возвращает текущее время
+function get_current_date() {
+    var time_now = new Date().toTimeString().slice(0, 8);
+    return time_now;
+};
+
+
+function pp_staff_update(graph_id) {
+    var form = $("#" + graph_id);
+    $.ajax({
+        type: 'post',
+        url: '#',
+        //data: form.serialize(),
+        success: function (response) {
+            var server_data = jQuery.parseJSON(response);
+
+            // создание графиков
+            Plotly.newPlot(graph_id, server_data.data, server_data.layout);
+            $("#time_now_p").text(`Обновлено в: ${get_current_date()}`);
+
+        },
+        error: function () {
+            $("#time_now_p").text(get_current_date() + " Ошибка подключения! Данные не обновлены!")
+        }
+    });
+};
