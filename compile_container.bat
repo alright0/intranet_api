@@ -1,0 +1,1 @@
+docker build -t intranet_api %~dp0

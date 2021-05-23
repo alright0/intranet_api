@@ -683,7 +683,16 @@ class up_puco_table:
                 df_camera_lvl_0 = pd.DataFrame(
                     Camera.get_camera_info(
                         self.date_start_with_hours, self.date_end_with_hours, line
-                    )
+                    ),
+                    columns=[
+                        "line",
+                        "line_side",
+                        "date_now",
+                        "date_now_sys",
+                        "job",
+                        "total",
+                        "rejected",
+                    ],
                 )
 
                 df_line_list.append(df_camera_lvl_0)
@@ -693,9 +702,10 @@ class up_puco_table:
         # если фрейм пустой - поставить график-заглушку "Нет информации"
         if not camera_line_df.empty:
 
-            camera_line_df["defect_rate"] = (
-                camera_line_df["rejected"] / camera_line_df["total"]
+            camera_line_df["defect_rate"] = camera_line_df[["rejected", "total"]].apply(
+                lambda x: x[0] / x[1] if x[1] != 0 else 0, axis=1
             )
+
             camera_line_df.fillna(0, inplace=True)
 
             camera_line_df["shift"] = camera_line_df["date_now_sys"].apply(
@@ -857,7 +867,19 @@ class up_puco_table:
         raw_df_by_line = pd.DataFrame(
             up_puco_export.get_production_info(
                 self.date_start_sql, self.date_end_sql, line
-            )
+            ),
+            columns=[
+                "line",
+                "order",
+                "counter_start",
+                "counter_end",
+                "shift",
+                "puco_code",
+                "start_date",
+                "start_time",
+                "end_date",
+                "end_time",
+            ],
         )
 
         if not raw_df_by_line.empty:
