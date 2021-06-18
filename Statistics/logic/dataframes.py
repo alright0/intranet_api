@@ -403,8 +403,8 @@ class up_puco_table:
                 # суммарный выпуск
                 fig.add_trace(
                     go.Scatter(
-                        y=line_by_shift_df.groupby("shift")["sheets"].cumsum(),
                         x=line_by_shift_df["date_stop"],
+                        y=line_by_shift_df.groupby("shift")["sheets"].cumsum(),
                         name="Общий выпуск: "
                         + str(line_by_shift_df["sheets"].sum() // 1000)
                         + "K",
@@ -526,10 +526,25 @@ class up_puco_table:
                         )
                     )
 
+                max_output = line_by_shift_df.groupby("shift")["sheets"].cumsum().max()
+                normal_output = LINE_OUTPUT[line]
+
+                y_max = max_output if max_output > normal_output else normal_output
+                y_max *= 1.05
+
+                y_min = line_by_shift_df.groupby("shift")["sheets"].cumsum().max()
+                y_min = 0 - y_min * (0.05)
+
                 fig.update_layout(
                     title=f"Линия: {line} Смена: {shift}",
                     margin=dict(l=10, r=10, t=30, b=10),
-                    yaxis2=dict(showgrid=False),
+                    yaxis2=dict(
+                        showgrid=False,
+                        range=[-0.5, 10.5],
+                    ),
+                    yaxis=dict(
+                        range=[y_min, y_max],
+                    ),
                 )
 
                 line_by_shift_list[line][shift] = self.graph_to_json(fig)
