@@ -4,18 +4,16 @@ from pathlib import Path
 import sqlalchemy as db
 import pandas as pd
 
-
 from datetime import date, datetime, timedelta
 from flask import Flask
 from flask_caching import Cache
 from flask_login import LoginManager, UserMixin
+from flask_mail import Mail
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from pathlib import Path
 from logging.handlers import SMTPHandler, RotatingFileHandler
-from flask_mail import Mail
-
 
 from config import VM, FC, Config
 
@@ -27,9 +25,10 @@ app.config.from_object(Config)
 
 login = LoginManager(app)
 login.login_view = "users.login"
-login.login_message = "Вы должны авторизоваться, чтобы получить доступ к данной странице"  # flash сообщение при редиректре на login_required
+login.login_message = (
+    "Вы должны авторизоваться, чтобы получить доступ к данной странице"
+)
 
-# тестовый клиент для тестов
 client = app.test_client()
 
 mail = Mail(app)
@@ -61,7 +60,6 @@ session_fc = scoped_session(
 
 session = session_cam()
 
-
 Base_cam = declarative_base()
 Base_fc = declarative_base()
 
@@ -72,39 +70,17 @@ Base_fc.query = session_fc.query_property()
 from Statistics.models import *
 
 # добавление Blueprints
-from .api.views import camera
 from .site.views import site
 from .users.views import users
 from Statistics.handlers import error_handlers
 
 # регистрация Blueprints
-app.register_blueprint(camera)
 app.register_blueprint(site)
 app.register_blueprint(users)
 app.register_blueprint(error_handlers)
 
 
 if not app.debug:
-
-    if app.config["MAIL_SERVER"]:
-        auth = None
-        if app.config["MAIL_USERNAME"]:
-            auth = app.config["MAIL_USERNAME"]
-            secure = None
-            if app.config["MAIL_USE_TLS"]:
-                secure = ()
-
-            mail_handler = SMTPHandler(
-                mailhost=(app.config["MAIL_SERVER"], app.config["MAIL_PORT"]),
-                fromaddr="no-reply@silganmp.com",
-                toaddrs=app.config["ADMINS"],
-                subject="Statistics Site Failure",
-                credentials=auth,
-                secure=secure,
-            )
-
-            mail_handler.setLevel(logging.ERROR)
-            app.logger.addHandler(mail_handler)
 
     if not Path.exists(path / "logs"):
         Path.mkdir(path / "logs")
@@ -122,7 +98,6 @@ if not app.debug:
     app.logger.addHandler(file_handler)
 
     app.logger.setLevel(logging.INFO)
-    app.logger.info("Statistics Site Startup")
 
 # отключение предупреждения chained_assignment
 pd.options.mode.chained_assignment = None

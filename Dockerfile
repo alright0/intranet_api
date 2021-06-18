@@ -6,6 +6,6 @@ COPY . /app
 WORKDIR /app
 RUN pip install -r requirements.txt
 ENV TZ Europe/Moscow
-EXPOSE 5000
+EXPOSE 8989
 ENTRYPOINT ["python3"]
 CMD ["manage.py"]

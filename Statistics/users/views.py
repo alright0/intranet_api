@@ -9,7 +9,6 @@ from flask_login import current_user, login_user, logout_user
 from Statistics import *
 from config import *
 from Statistics.models import User
-from Statistics.schemas import CameraSchema
 from Statistics.mail import send_email, send_password_reset_email
 from Statistics.forms import (
     LoginForm,

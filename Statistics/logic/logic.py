@@ -6,7 +6,6 @@ from config import IBEA_ADDRESS, IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from flask import jsonify
 from Statistics.logic.dataframes import *
 from Statistics.models import *
-from Statistics.schemas import CameraSchema
 from Statistics.logic.queries import get_order_description
 
 
@@ -14,7 +13,6 @@ def get_date_from_html_input(calendar_date, template):
     "Возвращает формат даты, подходящий для создания экземпляра выпуска линии из input=date"
 
     return datetime.strptime(calendar_date, template).date()
-
 
 
 def get_line_status(line):
@@ -57,7 +55,6 @@ def get_line_status(line):
     try:
         # получение списка параметров линии
         line_status = LineStatus.get_line_param(line)
-
 
         if int(line_status.shift):
 

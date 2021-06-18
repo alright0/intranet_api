@@ -11,7 +11,6 @@ from Statistics import cache
 from Statistics.handlers import access_denied, default_errhandler
 from Statistics.logic.logic import *
 from Statistics.models import Camera, up_puco_export
-from Statistics.schemas import CameraSchema
 from werkzeug.exceptions import HTTPException
 from random import random
 
@@ -101,11 +100,15 @@ def index():
 def production_plan_staff():
     """Страница с графиком выработки для персонала"""
 
+    """def update_table():
+        return up_puco_table()"""
+
     if request.method == "POST":
-        # print(up_puco_table().subplots(style="mini"))
+
         return up_puco_table().subplots(style="mini")
 
     info = up_puco_table()
+
     plot = info.subplots(style="mini")
     now = datetime.now().strftime("%H:%M:%S")
 

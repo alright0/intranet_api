@@ -9,7 +9,6 @@ from flask_login import current_user, login_required
 from Statistics.forms import LoginForm
 from Statistics.logic.logic import *
 from Statistics.models import Camera
-from Statistics.schemas import CameraSchema
 from werkzeug.exceptions import HTTPException
 import logging
 

@@ -15,7 +15,6 @@ from plotly.utils import PlotlyJSONEncoder
 from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from Statistics.logic.queries import get_order_description
 from Statistics.models import *
-from Statistics.schemas import CameraSchema
 
 
 # TODO: разделись методы на таблицы и графики
@@ -1000,19 +999,20 @@ class up_puco_table:
                 axis=1,
             )
 
-            final_df_by_line["date"] = (
-                final_df_by_line[["date_stop", "shift"]]
-                .apply(
-                    lambda x: x[0]
-                    if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8)
-                    or x[1] == 1
-                    or x[1] == 0
-                    else x[0] - timedelta(hours=8),
-                    axis=1,
+            if not final_df_by_line.empty:
+                final_df_by_line["date"] = (
+                    final_df_by_line[["date_stop", "shift"]]
+                    .apply(
+                        lambda x: x[0]
+                        if x[0] > datetime(x[0].year, x[0].month, x[0].day, 8)
+                        or x[1] == 1
+                        or x[1] == 0
+                        else x[0] - timedelta(hours=8),
+                        axis=1,
+                    )
+                    .astype(str)
+                    .str[:10]
                 )
-                .astype(str)
-                .str[:10]
-            )
 
             return final_df_by_line
         else:
