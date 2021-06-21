@@ -7,7 +7,6 @@ from config import *
 from flask import Blueprint, redirect, render_template, request, url_for, jsonify
 from flask_login import current_user, login_required
 from Statistics.forms import LoginForm
-from Statistics import cache
 from Statistics.handlers import access_denied, default_errhandler
 from Statistics.logic.logic import *
 from Statistics.models import Camera, up_puco_export
@@ -15,12 +14,6 @@ from werkzeug.exceptions import HTTPException
 from random import random
 
 site = Blueprint("site", __name__)
-
-
-@site.route("/test", methods=["GET", "POST"])
-@cache.cached(timeout=10)
-def cache_test():
-    return str(random())
 
 
 @site.route("/order_info", methods=["GET", "POST"])
@@ -36,31 +29,20 @@ def order_info():
 def detailed_daily_report():
 
     if request.method == "POST":
-
         lines_list = request.form.getlist("line_checkbox")
-
         calendar_date = get_date_from_html_input(
             request.form.get("calendar"), "%Y-%m-%d"
         )
-
-        # экземпляр ответа
         new_response = up_puco_table(date=calendar_date, lines=lines_list, period="day")
-
         return json.dumps(new_response.stops_trace_graph())
 
     table = "line_report.camera_defrate_table()"
-
     return render_template("detailed_daily_report.html", table=table, lines=LINES)
 
 
-@site.route(
-    "/daily_report",
-    methods=[
-        "GET",
-    ],
-)
+@site.route("/daily_report", methods=["GET"])
 def daily_report():
-    """Здесь будет страница отчета за последние сутки(или за указанные)"""
+    """отчет за указанные сутки"""
 
     return render_template("daily_report.html", lines=LINES)
 
@@ -68,7 +50,7 @@ def daily_report():
 # домашняя страница
 @site.route("/", methods=["GET", "POST"])
 def index():
-    """Главная страница, содержащая табло работы линий в реальном времени"""
+    """Главная страница"""
 
     if request.method == "POST":
         lines_status = []
@@ -100,19 +82,13 @@ def index():
 def production_plan_staff():
     """Страница с графиком выработки для персонала"""
 
-    """def update_table():
-        return up_puco_table()"""
-
-    if request.method == "POST":
-
+    def _update_table():
         return up_puco_table().subplots(style="mini")
 
-    info = up_puco_table()
+    if request.method == "POST":
+        return _update_table()
 
-    plot = info.subplots(style="mini")
-    now = datetime.now().strftime("%H:%M:%S")
-
-    return render_template("production_plan_staff.html", plot=plot, now=now)
+    return render_template("production_plan_staff.html", plot=_update_table())
 
 
 # TODO: добавить возможность выбора периодов
@@ -126,10 +102,7 @@ def production_plan():
         calendar_date = get_date_from_html_input(
             request.form.get("calendar_date"), "%Y-%m"
         )
-
-        # экземпляр ответа
         new_response = up_puco_table(date=calendar_date)
-
         return json.dumps(
             {
                 "table": new_response.date_table(),
@@ -137,10 +110,7 @@ def production_plan():
                 "average": new_response.date_table_average(),
             }
         )
-
-    # Экземпляр для начальных условий
     start_response = up_puco_table()
-
     return render_template(
         "production_plan.html",
         table=start_response.date_table(),
