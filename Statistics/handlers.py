@@ -6,7 +6,7 @@ from config import *
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from Statistics.forms import LoginForm
+# from Statistics.forms import LoginForm
 from Statistics.logic.logic import *
 from Statistics.models import Camera
 from werkzeug.exceptions import HTTPException

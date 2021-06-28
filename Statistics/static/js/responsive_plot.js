@@ -15,7 +15,10 @@ function responsive_plot(plot_json, div_id, WIDTH = 99, HEIGHT = 50) {
     var graph_json = plot_json;
 
     /*здесь создается график*/
-    graph = Plotly.newPlot(div_id, graph_json);
+    data = graph_json.data
+    layout = graph_json.layout
+    config = { 'editable': true, 'displayModeBar': false }
+    graph = Plotly.newPlot(div_id, data, layout, config);
 
     /* событие изменения ширины*/
     window.addEventListener("resize", function (event) {

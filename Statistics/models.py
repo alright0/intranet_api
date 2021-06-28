@@ -1,6 +1,16 @@
-from Statistics import db, Base_cam, Base_fc, cam_engine, fc_engine, login, app
+from Statistics import (
+    db,
+    Base_cam,
+    Base_fc,
+    cam_engine,
+    fc_engine,
+    login,
+    app,
+    session_cam,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import cast
+from sqlalchemy.orm import relationship
 from flask_login import UserMixin
 import pandas as pd
 import jwt
@@ -432,3 +442,48 @@ class fc_users(Base_fc):
         )
 
         return f"{operator_name[0]} {operator_name[1]}"
+
+
+class CompoundDepartments(Base_cam):
+
+    __bind_key__ = "engine"
+    __tablename__ = "measurement_departments"
+
+    id = db.Column(
+        db.SMALLINT, nullable=False, unique=True, primary_key=True, autoincrement=True
+    )
+    department = db.Column(db.VARCHAR(20), nullable=False)
+
+    @classmethod
+    def get_department_name(cls, id):
+
+        dept = cls.query.filter(cls.id == id).first()
+        return dept.department
+
+
+class CompoundMeasures(Base_cam):
+
+    __bind_key__ = "engine"
+    __tablename__ = "compound_measures"
+
+    id = db.Column(
+        db.Integer, nullable=False, unique=True, primary_key=True, autoincrement=True
+    )
+    line = db.Column(db.String(5), nullable=False)
+    shift = db.Column(db.Integer, nullable=False)
+    result = db.Column(db.Boolean, default=False, nullable=False)
+    job = db.Column(db.VARCHAR(5))
+    date = db.Column(db.DATETIME, nullable=False)
+    measurement_id = db.Column(db.SMALLINT, db.ForeignKey("measurement_departments.id"))
+    measurments = relationship("CompoundDepartments")
+
+    @classmethod
+    def get_measures(cls, line, dt_start, dt_end, shift):
+
+        return (
+            cls.query.filter(cls.line == line)
+            .filter(cls.date >= dt_start)
+            .filter(cls.date <= dt_end)
+            .filter(cls.shift == shift)
+            .all()
+        )

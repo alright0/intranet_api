@@ -526,6 +526,29 @@ class up_puco_table:
                         )
                     )
 
+                measures = CompoundMeasures.get_measures(
+                    line, self.date_start_with_hours, self.date_end_with_hours, shift
+                )
+
+                for measure in measures:
+
+                    annotation_color = "#99FFCC" if measure.result else "#FF6666"
+                    measure_time = datetime.strftime(measure.date, "%H:%M")
+                    measure_department = CompoundDepartments.get_department_name(
+                        measure.measurement_id
+                    )
+
+                    fig.add_annotation(
+                        x=measure.date,
+                        yref="y2",
+                        y=0,
+                        ayref="y2",
+                        ay=9,
+                        text=f"Время: {measure_time}<br>Отдел: {measure_department}<br>Заказ: {measure.job}",
+                        bgcolor=annotation_color,
+                        arrowhead=2,
+                    )
+
                 max_output = line_by_shift_df.groupby("shift")["sheets"].cumsum().max()
                 normal_output = LINE_OUTPUT[line]
 
@@ -546,6 +569,8 @@ class up_puco_table:
                         range=[y_min, y_max],
                     ),
                 )
+
+                config = {"editable": True}
 
                 line_by_shift_list[line][shift] = self.graph_to_json(fig)
 

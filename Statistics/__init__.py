@@ -6,7 +6,6 @@ import pandas as pd
 
 from datetime import date, datetime, timedelta
 from flask import Flask
-from flask_caching import Cache
 from flask_login import LoginManager, UserMixin
 from flask_mail import Mail
 from sqlalchemy import create_engine
@@ -28,12 +27,8 @@ login.login_view = "users.login"
 login.login_message = (
     "Вы должны авторизоваться, чтобы получить доступ к данной странице"
 )
-
 client = app.test_client()
-
 mail = Mail(app)
-cache = Cache(app)
-
 
 # создание подключения к базе EN-VM01
 cam_engine = create_engine(
