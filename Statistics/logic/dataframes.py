@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from dateutil.relativedelta import relativedelta
 from plotly.subplots import make_subplots
 from plotly.utils import PlotlyJSONEncoder
-from config import IBEA_CAMERA_MAP, LINE_OUTPUT, LINES
 from Statistics.logic.queries import get_order_description
 from Statistics.models import *
 
@@ -544,8 +544,14 @@ class up_puco_table:
                         y=0,
                         ayref="y2",
                         ay=9,
-                        text=f"Время: {measure_time}<br>Отдел: {measure_department}<br>Заказ: {measure.job}",
+                        text="<b>Время: </b>"
+                        + measure_time
+                        + "<br><b>Отдел: </b>"
+                        + measure_department
+                        + "<br><b>Заказ: </b>"
+                        + measure.job,
                         bgcolor=annotation_color,
+                        align="left",
                         arrowhead=2,
                     )
 
@@ -1201,32 +1207,3 @@ class up_puco_table:
         return (
             final_df_by_line[cumsum_counter].diff().fillna(0).clip(lower=0).astype(int)
         )
-
-    # TODO: переработать
-    def camera_defrate_table_to_json(self):
-
-        camera_table_df = self.__parse_camera()
-        camera_dict = dict()
-
-        if not camera_table_df.empty:
-
-            camera_pivot_df = pd.pivot_table(
-                camera_table_df,
-                values=["pcs_total", "pcs_rejected"],
-                index=["shift", "job", "line_side"],
-                aggfunc="sum",
-            ).reset_index()
-
-            camera_pivot_df["pcs_defrate"] = (
-                camera_pivot_df["pcs_rejected"] / camera_pivot_df["pcs_total"] * 100
-            )
-            camera_pivot_df.fillna(0, inplace=True)
-
-            for line in self.lines:
-                if line in IBEA_CAMERA_MAP:
-                    camera_dict[line] = {}
-                    for line_side in IBEA_CAMERA_MAP[line]:
-                        pass
-
-            return camera_dict
-        return camera_table_df
