@@ -12,8 +12,7 @@
         <input type="date" , name="calendar" id="calendar_input" min="2020-01-01">
 
         <div class="checkboxes">
-            <label><input type="checkbox" name="all_lines_checkbox" onClick="toggle_all(this, 'line_checkbox')"><b>Все
-                    линии</b></label>
+            <label><input type="checkbox" name="all_lines_checkbox" onClick="toggle_all(this, 'line_checkbox')"><b>All Lines</b></label>
             {% for line in lines %}
             <label><input type="checkbox" name="line_checkbox" value={{line}}>{{line}}</label>
             {% endfor %}

@@ -23,63 +23,12 @@
             <!--  цикл просмотра всех линий для заполнения табло -->
             {% for line in LINES %}
 
-            {% set status = lines_dict[line]['status']%}
-
-            <!--  здесь infoboard_block получает id в зависимости от статуса линии  -->
-            {% if status|length > 5 %}
-            {% set status_color = "PUCO" %}
-            {% set message = "message" %}
-            {% else %}
-            {% set status_color = status %}
-            {% set message = "no_message" %}
-            {% endif %}
-
-            <!-- переменные  -->
-            {% set operator = lines_dict[line]['operator'] %}
-            {% set order = lines_dict[line]['order']['order'] %}
-            {% set order_description = lines_dict[line]['order']['description'] %}
-            {% set input = lines_dict[line]['input'] %}
-            {% set output = lines_dict[line]['output'] %}
-
-
             <div class="infoboard_block {{ status_color }}" name="" id="{{ line }}_container">
 
                 <!--  Линия  -->
                 <div class="infoboard_block_section line">
                     <p>{{ line }}</p>
                 </div>
-
-                <!-- статус -->
-                <div class="infoboard_block_section status_{{ message }}" id="status_{{ line }}">
-                    <p id="status_{{ line }}_p">{{ status }}</p>
-                </div>
-
-                <!--  оператор линии  -->
-                <div class="infoboard_block_section operator" id="operator_{{ line }}">
-                    <p id="operator_{{ line }}_p">{{ operator }}</p>
-                </div>
-
-                <!--  номер заказа и его описание  -->
-                <div class="infoboard_block_section order" id="order_{{ line }}">
-                    {% if order and order_description %}
-                    <p id="order_{{ line }}_p"><b>{{order}}</b>: {{order_description}}</p>
-                    {% else %}
-                    <p id="order_{{ line }}_p"></p>
-                    {% endif %}
-                </div>
-
-                <!--  счетчики входа-выхода  -->
-                <div class="infoboard_block_pair" id="counter_{{ line }}">
-                    {% for counter in ["input", "output"] %}
-                    <div class="infoboard_block_small" id="{{ counter }}_{{ line }}">
-                        {% if status != "STOP" and status != "N-A" %}
-                        <p>{{ counter|upper }}:</p>
-                        <p><b>{{ lines_dict[line][counter] }}</b></p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
 
                 <!--  Кастомизация камер  -->
                 {% if 'camera' in lines_dict[line] and lines_dict[line]['camera'] != {} %}
@@ -100,10 +49,6 @@
 
                         {% endif %}
 
-                        <!-- к-во минут с момента последнего измерения -->
-                        <p>{{ camera_last_meas[loop.index0] }}</p>
-
-
                     </div>
 
                     {% endfor %}
@@ -115,7 +60,7 @@
 
         </div>
 
-        <p style="text-align: center; margin: 10px; font-size: 8pt;" id="updated"></p>
+        <p style="text-align: center; margin: 10px; font-size: 12pt;" id="updated"></p>
 
         <script>
             update_current_situation();
@@ -127,8 +72,6 @@
                 update_current_situation();
                 setTimeout(run, timeout);
             }, timeout);
-
-
         </script>
 
 

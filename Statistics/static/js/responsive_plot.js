@@ -1,5 +1,5 @@
 // функция, добавляющая адаптивность для графиков plotly
-function responsive_plot(plot_json, div_id, WIDTH = 99, HEIGHT = 50) {
+function responsive_plot(plot_json, div_id, WIDTH = 32, HEIGHT = 50) {
     var d3 = Plotly.d3;
 
     /* ширина и высота родительского элемента*/
@@ -17,7 +17,7 @@ function responsive_plot(plot_json, div_id, WIDTH = 99, HEIGHT = 50) {
     /*здесь создается график*/
     data = graph_json.data
     layout = graph_json.layout
-    config = { 'editable': true, 'displayModeBar': false }
+    config = { 'editable': false, 'displayModeBar': false }
     graph = Plotly.newPlot(div_id, data, layout, config);
 
     /* событие изменения ширины*/
@@ -91,33 +91,33 @@ function daily_report_return(request_form) {
 
             if (Object.keys(plots).length > 0) {
                 // for each для списка линий
-                $.each(plots, function (line) {
-                    $("#main_container").append(
-                        `<div class="graph_container" id="graph_container_${line}"></div>`);
+            $.each(plots, function (line) {
+                $("#main_container").append(
+                    `<div class="graph_container" id="graph_container_${line}" style="display: flex; margin-top: 25px; flex-direction: row; justify-content: space-between"></div>`);
 
-                    var plot = plots[line];
+                var plot = plots[line];
 
-                    // for each для списка смен 
-                    $.each(plot, function (shift) {
+                // for each для списка смен
+                $.each(plot, function (shift) {
 
-                        var graph_info = jQuery.parseJSON(plot[shift]);
+                    var graph_info = jQuery.parseJSON(plot[shift]);
 
-                        // добавление в основной график контейнеров для графиков 
-                        $(`#graph_container_${line}`).append(
-                            `<div class="graph_container" id="graph_container_${line}_${shift}">
-                    </div>`);
+                    // добавление в основной график контейнеров для графиков
+                    $(`#graph_container_${line}`).append(
+                        `<div class="graph_container" id="graph_container_${line}_${shift}" >
+                </div>`);
 
-                        // создание графиков
-                        responsive_plot(graph_info, `graph_container_${line}_${shift}`);
+                    // создание графиков
+                    responsive_plot(graph_info, `graph_container_${line}_${shift}`);
 
-                    });
                 });
+            });
             } else {
                 $("#main_container").append("<p>Нет данных для отображения</p>")
             };
 
         },
-        error: function () { $("#main_container").append("<p>Нет данных для отображения</p>"); }
+        error: function () { $("#main_container").append("<p>Ошибка. Нет данных для отображения</p>"); }
 
     })
 };
@@ -200,7 +200,7 @@ function update_current_situation() {
 
                 // сообщение о времени последнего обновления страницы
                 var updated = new Date().toTimeString().slice(0, 8);
-                $("#updated").html(`Обновлено в ${updated}`);
+                $("#updated").html(`Updated at ${updated}`);
 
 
             })
@@ -238,7 +238,7 @@ function pp_staff_update(graph_id) {
 
             // создание графиков
             Plotly.newPlot(graph_id, server_data.data, server_data.layout);
-            $("#time_now_p").text(`Обновлено в: ${get_current_date()}`);
+            $("#time_now_p").text(`Updated at: ${get_current_date()}`);
 
         },
         error: function () {
