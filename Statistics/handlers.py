@@ -4,18 +4,6 @@ from werkzeug.exceptions import HTTPException
 error_handlers = Blueprint("handlers", __name__)
 
 
-@error_handlers.route("/access_denied", methods=["get"])
-def access_denied():
-    """Редирект с контента с более высоким уровнем доступа"""
-
-    error = {
-        "code": "Доступ запрещен",
-        "description": "Недостаточно прав для просмотра страницы",
-    }
-
-    return render_template("errors/error.html", error=error)
-
-
 @error_handlers.app_errorhandler(HTTPException)
 def default_errhandler(e):
     return render_template("errors/error.html", error=e), e.code
