@@ -1,8 +1,8 @@
 import math
+from datetime import datetime
 
-from Statistics.logic.dataframes import *
-from Statistics.models import *
-
+from config import IBEA_CAMERA_MAP
+from Statistics.models import Camera
 
 def get_line_status(line):
 

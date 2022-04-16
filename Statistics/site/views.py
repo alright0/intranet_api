@@ -1,8 +1,12 @@
 from flask import Blueprint, render_template, request
-from Statistics.logic.logic import *
+from Statistics.logic.logic import get_line_status
+from Statistics.logic.dataframes import up_puco_table
 from config import LINES
+from datetime import datetime
+import json
 
 site = Blueprint("site", __name__)
+
 
 @site.route("/detailed_daily_report", methods=["GET", "POST"])
 def detailed_daily_report():
@@ -15,6 +19,7 @@ def detailed_daily_report():
 
     table = "line_report.camera_defrate_table()"
     return render_template("detailed_daily_report.html", table=table, lines=LINES)
+
 
 # домашняя страница
 @site.route("/", methods=["GET", "POST"])
