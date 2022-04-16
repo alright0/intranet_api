@@ -4,11 +4,8 @@ from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from pathlib import Path
 
 from config import VM, Config
-
-path = Path(__file__).parents[1]
 
 app = Flask(__name__)
 app.config.from_object(Config)
