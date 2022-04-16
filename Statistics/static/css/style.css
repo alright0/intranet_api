@@ -7,16 +7,6 @@
     --silgan_blue: #003882;
     --silgan_gray: #70777d;
     --light_gray: #e6e6e6;
-
-    --line_run: #fafff9;
-    --line_stop: #fafafa;
-    --line_puco:#fffff9;
-    --line_error: #fff9f9;
-
-    --line_run_hover: rgb(235, 255, 234);
-    --line_puco_hover:rgb(254, 255, 234);
-    --line_error_hover:rgb(255, 234, 234);
-    
   }
 
 a{
@@ -52,6 +42,7 @@ table{
     width: 0.1px;
     background: var(--light_gray);
 }
+
 footer{
     background: var(--silgan_gray);
     width: 100%;
@@ -101,6 +92,7 @@ footer p{
 .topnav{
     text-align: center;
     width: auto;
+    margin-bottom: 5px;
 }
 
 .topnav a{
@@ -125,7 +117,6 @@ footer p{
     padding: 7px;
     border-radius: 8px;
     box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
-    margin-top: 25px;
     display: grid;
     grid-template-columns: repeat(3, 175px);
     grid-gap: 7px;
@@ -141,39 +132,6 @@ footer p{
     display: inline-table
 }
 
-
-/* Окрашивание линий в зависмости от статуса */
-
-.RUN{
-    background: var(--line_run); /* зеленый */
-}
-.RUN:hover{
-    background: var(--line_run_hover); /* зеленый */
-}
-
-
-.STOP{
-    background: var(--line_stop); /* серый */
-}
-.STOP:hover{
-    background: #FFF; /* серый */
-}
-
-
-.N-A{
-    background: var(--line_error); /* красный */
-}
-.N-A:hover{
-    background: var(--line_error_hover); /* красный */
-}
-
-
-.PUCO{
-    background: var(--line_puco); /* желтый */
-}
-.PUCO:hover{
-    background: var(--line_puco_hover); /* желтый */
-}
 
 /*------------------------------------------------*/
 .infoboard_block_pair{
@@ -383,8 +341,6 @@ footer p{
     }
 
 }
-
-
 
 @media screen and (max-width: 600px){
     .topnav{

@@ -1,5 +1,4 @@
 import pandas as pd
-import sqlalchemy as db
 
 from flask import Flask
 from sqlalchemy import create_engine
@@ -8,7 +7,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from pathlib import Path
 
 from config import VM, Config
-
 
 path = Path(__file__).parents[1]
 
@@ -30,7 +28,6 @@ from Statistics.handlers import error_handlers
 # регистрация Blueprints
 app.register_blueprint(site)
 app.register_blueprint(error_handlers)
-
 
 # отключение предупреждения chained_assignment
 pd.options.mode.chained_assignment = None

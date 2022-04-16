@@ -21,26 +21,11 @@ def detailed_daily_report():
 def index():
     """Главная страница"""
 
+    lines_status = []
     if request.method == "POST":
-        lines_status = []
-
         for line in LINES:
             lines_status.append(get_line_status(line))
-
         return json.dumps(dict(zip(LINES, lines_status)))
-
-    lines_status = []
-    for line in LINES:
-        lines_status.append(
-            dict(
-                status="",
-                operator="",
-                input=0,
-                output=0,
-                order={"order": "", "description": ""},
-                camera={},
-            )
-        )
 
     lines_dict = dict(zip(LINES, lines_status))
 
