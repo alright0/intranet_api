@@ -108,6 +108,7 @@ footer p{
     margin-top: 20px;
     text-align: center;
 }
+
 /*----------------------------------------------*/
 .infoboard_container{
     background: #f2f2f2;
@@ -123,15 +124,12 @@ footer p{
     justify-content: center;
 }
 
-
 .infoboard_block{
     border-radius: 5px;
     box-shadow: rgba(0,0,0,0.2) 0 2px 4px 1px;
     max-width: 190px;
-    /*height: 300px;*/
     display: inline-table
 }
-
 
 /*------------------------------------------------*/
 .infoboard_block_pair{
@@ -175,15 +173,6 @@ footer p{
     font-size: 9pt;
 }
 
-.status_no_message p{
-    font-size: 16pt;
-    font-weight: 400;
-}
-
-.status_message p{
-    font-size: 8pt;
-}
-
 .line p{
     font-size: 18pt;
     font-weight: 400;
@@ -193,107 +182,8 @@ footer p{
     box-shadow: none;
 }
 
-
-
-
-
-
-/*----------------------------------------------------*/
-
 .production_plan{
-    display:grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-gap: 7px;
-    grid-template-areas: "a a a b b b";
     padding: 10px 8px 10px 8px;
-
-}
-
-.production_plan_graphs_staff{
-    background: var(--line_stop);
-    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
-    padding: 10px;
-    border-radius: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: Start;
-    justify-content: center;
-    gap: 7px;
-}
-.production_plan_stdblock{
-    background: #FFF;
-    box-shadow: rgba(0,0,0,0.2) 0 4px 2px -2px;
-    border-radius: 8px;
-    display: block;
-    text-align: -webkit-center;
-    font-size: 7pt;
-    padding: 10px;
-
-}
-
-.production_plan_stdblock p{
-    font-size: 12pt;
-    font-weight: 800;
-    margin: 5px;
-}
-
-.production_plan_tbl{
-    display:grid;
-    grid-gap: 5px;
-    grid-template-columns: repeat(4,minmax(180px, 250px));
-}
-
-
-.production_plan_graphs{
-    background: var(--line_stop);
-    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
-    width:97%;
-    padding: 10px;
-    grid-area: a;
-    border-radius: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-content: Start;
-    justify-content: left;
-    gap: 7px;
-
-}
-
-.production_plan_table{
-    background: var(--line_stop);
-    box-shadow: rgba(0,0,0,0.2) 0 4px 5px 3px;
-    border-radius: 5px;
-    grid-area: b;
-    padding: 10px;
-
-}
-
-.production_plan_table_av{
-    font-size: 7pt;
-}
-
-.production_plan_table {
-
-    font-size: 7pt;
-}
-
-/*--------------------------------------------------*/
-
-.daily_report_line{
-    display:grid;
-    grid-template-rows: repeat(2,minmax(1fr,1fr));
-    grid-gap: 5px;
-}
-
-.daily_report_line_flex{
-    display:flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-    padding: 7px;
-
 }
 
 /*-----------------------------------------------*/
@@ -312,21 +202,7 @@ footer p{
     margin: 10px;
 }
 
-#reg_table{
-    font-size: 10pt;
-    border-spacing: 5px;
-}
 
-#submit{
-    padding:5px;
-}
-
-@media screen and (max-width: 1500px){
-    .production_plan{
-        display:block;
-    }
-
-}
 @media screen and (max-width: 960px){
 
     .logo{
@@ -336,7 +212,6 @@ footer p{
 
     .infoboard_container{
         width: 542px;
-        /*align-content: center;*/
         grid-template-columns: repeat(auto-fit, 175px);
     }
 
@@ -357,5 +232,3 @@ footer p{
     }
 
 }
-
-

@@ -1,5 +1,5 @@
 // функция, добавляющая адаптивность для графиков plotly
-function responsive_plot(plot_json, div_id, WIDTH = 32, HEIGHT = 50) {
+function responsive_plot(plot_json, div_id, WIDTH = 32, HEIGHT = 70) {
     var d3 = Plotly.d3;
 
     /* ширина и высота родительского элемента*/

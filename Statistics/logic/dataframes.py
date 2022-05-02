@@ -23,6 +23,8 @@ class up_puco_table:
 
         self.defrate_cutoff = 0.1
 
+        self.colors = ['dodgerblue', 'tomato', 'darkgreen', 'orange',]
+
     def graph(self):
 
         line_by_shift_list = {}
@@ -35,9 +37,15 @@ class up_puco_table:
 
                 empty_flag = True  # флаг, указывающий, стоит ли вешать плашку "NO DATA"
 
-                fig = make_subplots()
+                fig = make_subplots(
+                    rows=3,
+                    cols=1,
+                    vertical_spacing=0.02,
+                    shared_xaxes=True
+
+                )
                 if not camera_df.empty and line in IBEA_CAMERA_MAP:
-                    for line_side in IBEA_CAMERA_MAP[line]:
+                    for color_index, line_side in enumerate(IBEA_CAMERA_MAP[line]):
 
                         camera_side_df = camera_df.loc[
                             (camera_df["line_side"] == line_side)
@@ -49,17 +57,57 @@ class up_puco_table:
 
                         camera_name_string = self._build_legend_string(camera_side_df, line_side)
 
-                        fig.add_trace(
-                            go.Scatter(
-                                x=camera_side_df["date_now_sys"],
-                                y=camera_side_df["defect_rate"] * 100,
-                                name=camera_name_string,
-                                hovertemplate="<extra></extra>"
-                                + "<b>" + line_side
-                                + "</b><br>Выброс: %{y:.2f}%<br>Время: "
-                                + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
-                                hoverinfo='skip'
-                            ),
+                        def _add_trace(hovertemplate, row, x, range, showlegend, y_title,):
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=camera_side_df["date_now_sys"],
+                                    y=x,
+                                    name=camera_name_string,
+                                    hovertemplate=hovertemplate,
+                                    hoverinfo='skip',
+                                    marker=dict(color=self.colors[color_index]),
+                                    showlegend=showlegend,
+                                    legendgroup=line_side,
+                                ),
+                                row=row,
+                                col=1,
+                            )
+                            fig.update_yaxes(range=range, col=1, row=row, title=y_title)
+
+                        _add_trace(
+                            hovertemplate="<extra></extra>"
+                            + "<b>" + line_side
+                            + "</b><br>Выброс: %{y:.2f}%<br>Время: "
+                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            row=1,
+                            x=camera_side_df["defect_rate"] * 100,
+                            range=[-0.5, 10],
+                            showlegend=True,
+                            y_title='Брак, %'
+                        )
+
+                        _add_trace(
+                            hovertemplate="<extra></extra>"
+                            + "<b>" + line_side
+                            + "</b><br>Скорость: %{y:} шт.<br>Время: "
+                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            row=2,
+                            x=camera_side_df["pcs_total"],
+                            range=[-50, 1000],
+                            showlegend=False,
+                            y_title='Динамика скорсти, шт'
+                        )
+
+                        _add_trace(
+                            hovertemplate="<extra></extra>"
+                            + "<b>" + line_side
+                            + "</b><br>Абсольтный выброс: %{y:} шт.<br>Время: "
+                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            row=3,
+                            x=camera_side_df["pcs_rejected"],
+                            range=[-2.5, 50],
+                            showlegend=False,
+                            y_title='Динамика выброса, шт'
                         )
 
                     if empty_flag:
@@ -68,10 +116,11 @@ class up_puco_table:
                     fig.update_layout(
                         title=f"Line: {line} Shift: {shift}",
                         margin=dict(l=10, r=10, t=30, b=10),
-                        yaxis=dict(range=[-0.5, 10]),
-                        showlegend=True,
                         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+                        # hovermode="x unified",
                     )
+                    fig.update_traces(xaxis='x1')
+
                     line_by_shift_list[line][shift] = self.graph_to_json(fig)
         return line_by_shift_list
 
@@ -178,11 +227,14 @@ class up_puco_table:
 
         :param fig: plotly figure
         """
-        fig.add_annotation(
-            x=0.5,
-            y=0.5,
-            xref="paper",
-            yref="paper",
-            showarrow=False,
-            text="NO DATA",
-        )
+        for i in range(1,4):
+            fig.add_annotation(
+                x=0.5,
+                y=0.5,
+                xref="x domain",
+                yref="y domain",
+                showarrow=False,
+                text="NO DATA",
+                col=1,
+                row=i,
+            )
