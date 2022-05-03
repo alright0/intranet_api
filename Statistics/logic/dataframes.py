@@ -11,7 +11,6 @@ from plotly.utils import PlotlyJSONEncoder
 from Statistics.models import *
 
 
-# TODO: разделись методы на таблицы и графики
 class up_puco_table:
     """Класс формирует данные для plotly.js"""
 
@@ -41,7 +40,7 @@ class up_puco_table:
                     rows=3,
                     cols=1,
                     vertical_spacing=0.02,
-                    shared_xaxes=True
+                    shared_xaxes=True,
 
                 )
                 if not camera_df.empty and line in IBEA_CAMERA_MAP:
@@ -63,7 +62,13 @@ class up_puco_table:
                                     x=camera_side_df["date_now_sys"],
                                     y=x,
                                     name=camera_name_string,
-                                    hovertemplate=hovertemplate,
+                                    hovertemplate="<extra></extra>"
+                                                  + f"Работа: <b>{line_side}</b><br>"
+                                                  + camera_side_df["job"]
+                                                  + "<br>Время: "
+                                                  + camera_side_df["date_now_sys"].dt.strftime('%H:%M')
+                                                  + "<br>"
+                                                  + hovertemplate,
                                     hoverinfo='skip',
                                     marker=dict(color=self.colors[color_index]),
                                     showlegend=showlegend,
@@ -74,11 +79,9 @@ class up_puco_table:
                             )
                             fig.update_yaxes(range=range, col=1, row=row, title=y_title)
 
+
                         _add_trace(
-                            hovertemplate="<extra></extra>"
-                            + "<b>" + line_side
-                            + "</b><br>Выброс: %{y:.2f}%<br>Время: "
-                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            hovertemplate="Выброс: %{y:.2f}%",
                             row=1,
                             x=camera_side_df["defect_rate"] * 100,
                             range=[-0.5, 10],
@@ -87,10 +90,7 @@ class up_puco_table:
                         )
 
                         _add_trace(
-                            hovertemplate="<extra></extra>"
-                            + "<b>" + line_side
-                            + "</b><br>Скорость: %{y:} шт.<br>Время: "
-                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            hovertemplate="Скорость: %{y:} шт.",
                             row=2,
                             x=camera_side_df["pcs_total"],
                             range=[-50, 1000],
@@ -99,15 +99,13 @@ class up_puco_table:
                         )
 
                         _add_trace(
-                            hovertemplate="<extra></extra>"
-                            + "<b>" + line_side
-                            + "</b><br>Абсольтный выброс: %{y:} шт.<br>Время: "
-                            + camera_side_df["date_now_sys"].dt.strftime('%H:%M'),
+                            hovertemplate="Абсольтный выброс: %{y:} шт.",
                             row=3,
                             x=camera_side_df["pcs_rejected"],
                             range=[-2.5, 50],
                             showlegend=False,
-                            y_title='Динамика выброса, шт'
+                            y_title='Динамика выброса, шт',
+
                         )
 
                     if empty_flag:
@@ -117,9 +115,8 @@ class up_puco_table:
                         title=f"Line: {line} Shift: {shift}",
                         margin=dict(l=10, r=10, t=30, b=10),
                         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
-                        # hovermode="x unified",
                     )
-                    fig.update_traces(xaxis='x1')
+                    fig.update_traces(xaxis='x3')
 
                     line_by_shift_list[line][shift] = self.graph_to_json(fig)
         return line_by_shift_list
