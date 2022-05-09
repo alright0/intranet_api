@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request
 from Statistics.logic.logic import get_line_status
-from Statistics.logic.dataframes import up_puco_table
+from Statistics.logic.dataframes import CameraGraph
 from config import LINES
 from datetime import datetime
 import json
@@ -14,11 +14,10 @@ def detailed_daily_report():
     if request.method == "POST":
         lines_list = request.form.getlist("line_checkbox")
         calendar_date = datetime.strptime(request.form.get("calendar"), "%Y-%m-%d")
-        new_response = up_puco_table(date=calendar_date, lines=lines_list)
+        new_response = CameraGraph(date=calendar_date, lines=lines_list)
         return json.dumps(new_response.graph())
 
-    table = "line_report.camera_defrate_table()"
-    return render_template("detailed_daily_report.html", table=table, lines=LINES)
+    return render_template("detailed_daily_report.html", lines=LINES)
 
 
 # домашняя страница

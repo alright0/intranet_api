@@ -19,10 +19,9 @@ Base_cam.query = session_cam.query_property()
 
 from Statistics.models import *
 
-from Statistics.site.views import site
+from Statistics.views import site
 from Statistics.handlers import error_handlers
 
-# регистрация Blueprints
 app.register_blueprint(site)
 app.register_blueprint(error_handlers)
 

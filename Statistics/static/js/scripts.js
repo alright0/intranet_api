@@ -73,10 +73,11 @@ function daily_report_return(request_form) {
                 append_err('Данные не выбраны')
             };
         },
-        error: append_err('Нет данных для отображения')
+        error:  (error) => append_err('Что-то пошло не так...')
     })
 };
 
+// очишает контейнер графиков и возвращает сообщение об ошибке, если надо
 function append_err(message) {
     $("#main_container").empty();
     return $("#main_container").append(`<p>${message}</p>`)

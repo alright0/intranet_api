@@ -11,7 +11,7 @@ from plotly.utils import PlotlyJSONEncoder
 from Statistics.models import *
 
 
-class up_puco_table:
+class CameraGraph:
     """Класс формирует данные для plotly.js"""
 
     def __init__(self, date, lines=LINES):
@@ -125,7 +125,6 @@ class up_puco_table:
         """График выпуска камеры. Принимает запрос из ``ibea_agregate`` на ``EN-VM01``"""
 
         df_line_list, df_camera_list = [], []
-        camera_line_df = pd.DataFrame([])
         camera_result_df = pd.DataFrame([])
 
         # запрос под каждую камеру и добавление поля брака
@@ -134,7 +133,7 @@ class up_puco_table:
                 camera_data = Camera.get_camera_info(self.date_start, self.date_end, line)
                 df_camera_lvl_0 = pd.DataFrame(list(camera_data))
                 df_line_list.append(df_camera_lvl_0)
-        camera_line_df = camera_line_df.append(df_line_list)
+        camera_line_df = pd.concat(df_line_list)
 
         # если фрейм пустой - поставить график-заглушку "Нет информации"
         if not camera_line_df.empty:
@@ -155,7 +154,7 @@ class up_puco_table:
 
                 df_camera_list.append(camera_side_df)
 
-            camera_result_df = camera_result_df.append(df_camera_list)
+            camera_result_df = pd.concat(df_camera_list)
         return camera_result_df
 
     # READY: Преобразует графики в json
