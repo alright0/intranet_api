@@ -43,27 +43,6 @@ table{
     background: var(--light_gray);
 }
 
-footer{
-    background: var(--silgan_gray);
-    width: 100%;
-    height: auto;
-    left: 0;
-    bottom:0;
-    margin: 0 auto;
-    position: fixed;
-    text-align: center;
-    display: none;/*flex;*/
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-}
-
-footer p{
-    color: #FFF;
-    font-size: 8pt;
-    padding-bottom: 5px;
-}
-
 .logo_background{
     background-image: url("../img/logo_background.png");
     text-align: center;

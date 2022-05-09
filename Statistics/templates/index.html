@@ -1,62 +1,52 @@
 {% extends 'base.html' %}
-<!DOCTYPE html>
-
 <head>
-    <title>{% block title %}Statistics{% endblock %}</title>
-    {% block javascript %}
-    {{ super() }}
-    <script src="../static/js/responsive_plot.js"></script>
-    {% endblock %}
+    {% block title %}Statistics{% endblock %}
 </head>
 
-<body>
-    <main>
-        {% block content %}
-        <div class="infoboard_container">
+{% block content %}
+<div class="infoboard_container">
 
-            <!--  цикл просмотра всех линий для заполнения табло -->
-            {% for line in LINES %}
-            <div class="infoboard_block {{ status_color }}" id="{{ line }}_container">
-                <!--  Линия  -->
-                <div class="infoboard_block_section line">
-                    <p>{{ line }}</p>
-                </div>
-                <!--  Кастомизация камер  -->
-                {% if 'camera' in lines_dict[line] and lines_dict[line]['camera'] != {} %}
-                {% set camera_defrate = lines_dict[line]['camera']['defrate'] %}
-                {% set camera_last_meas = lines_dict[line]['camera']['last_meas'] %}
-
-                <div class="infoboard_block_pair last_block" id="camera_{{ line }}">
-
-                    {% for camera in camera_defrate %}
-                    <div class="infoboard_block_small">
-                        {% if camera_defrate[loop.index0] > 1 %}
-                        <p style="color:#c05e5e;"><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
-                        {% else %}
-                        <p><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
+    <!--  цикл просмотра всех линий для заполнения табло -->
+    {% for line in LINES %}
+    <div class="infoboard_block {{ status_color }}" id="{{ line }}_container">
+        <!--  Линия  -->
+        <div class="infoboard_block_section line">
+            <p>{{ line }}</p>
         </div>
+        <!--  Кастомизация камер  -->
+        {% if 'camera' in lines_dict[line] and lines_dict[line]['camera'] != {} %}
+            {% set camera_defrate = lines_dict[line]['camera']['defrate'] %}
+            {% set camera_last_meas = lines_dict[line]['camera']['last_meas'] %}
 
-        <p style="text-align: center; margin: 10px; font-size: 10pt;" id="updated"></p>
+            <div class="infoboard_block_pair last_block" id="camera_{{ line }}">
 
-        <!-- обновление графиков при обновлении календаря и списка линий -->
-        <script>
-            update_current_situation();
+                {% for camera in camera_defrate %}
+                <div class="infoboard_block_small">
+                    {% if camera_defrate[loop.index0] > 1 %}
+                    <p style="color:#c05e5e;"><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
+                    {% else %}
+                    <p><b>{{ "A: {:.2f}%".format(camera_defrate[loop.index0]) }}</b></p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 
-            var timeout = 1000 * 120  // 1000 мсек на 120 - 2 минуты
+<p style="text-align: center; margin: 10px; font-size: 10pt;" id="updated"></p>
 
-            setTimeout(function run() {
-                update_current_situation();
-                setTimeout(run, timeout);
-            }, timeout);
-        </script>
-        {% endblock %}
-    </main>
-</body>
-</html>
+<!-- обновление графиков при обновлении календаря и списка линий -->
+<script>
+    update_current_situation();
+
+    second = 1000
+    var timeout = second * 120
+
+    setTimeout(function run() {
+        update_current_situation();
+        setTimeout(run, timeout);
+    }, timeout);
+</script>
+{% endblock %}

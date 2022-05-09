@@ -31,14 +31,6 @@ function responsive_plot(plot_json, div_id, WIDTH = 32, HEIGHT = 70) {
     });
 };
 
-// функция тмечает все чекбоксы с указанным именем
-function toggle_all(source, elem_name) {
-    checkboxes = document.getElementsByName(elem_name);
-    for (var i = 0, n = checkboxes.length; i < n; i++) {
-        checkboxes[i].checked = source.checked;
-    }
-}
-
 function daily_report_return(request_form) {
     var form = $(`#${request_form}`);
     $.ajax({
@@ -51,13 +43,19 @@ function daily_report_return(request_form) {
             // очистка контейнера с графиками
             $("#main_container").empty();
             if (Object.keys(plots).length > 0) {
+
+                // сообщение о том, что нет данных, если все выбранные линии пусты
+                var plots_array = Object.entries(plots)
+                empty_flag = plots_array.filter(([key, value]) => Object.keys(value).length > 0)
+                empty_flag.length == 0 && append_err('Нет данных для отображения')
+
                 // for each для списка линий
-            $.each(plots, function (line) {
-                $("#main_container").append(
-                    `<div class="graph_container" id="graph_container_${line}"
-                    style="display: flex; margin-top: 25px; flex-direction: row; justify-content: space-between">
-                    </div>`
-                );
+                $.each(plots, function (line) {
+                    $("#main_container").append(
+                        `<div class="graph_container" id="graph_container_${line}"
+                        style="display: flex; margin-top: 25px; flex-direction: row; justify-content: space-between">
+                        </div>`
+                    );
 
                 var plot = plots[line];
                 // for each для списка смен
@@ -65,22 +63,37 @@ function daily_report_return(request_form) {
                     var graph_info = jQuery.parseJSON(plot[shift]);
                     // добавление в основной график контейнеров для графиков
                     $(`#graph_container_${line}`).append(
-                        `<div class="graph_container" id="graph_container_${line}_${shift}" >
-                </div>`);
+                        `<div class="graph_container" id="graph_container_${line}_${shift}"></div>`
+                        );
                     // создание графиков
                     responsive_plot(graph_info, `graph_container_${line}_${shift}`);
                 });
             });
             } else {
-                $("#main_container").append("<p>Нет данных для отображения</p>")
+                append_err('Данные не выбраны')
             };
         },
-        error: function () { $("#main_container").append("<p>Ошибка. Нет данных для отображения</p>"); }
+        error: append_err('Нет данных для отображения')
     })
 };
 
+function append_err(message) {
+    $("#main_container").empty();
+    return $("#main_container").append(`<p>${message}</p>`)
+}
+
+// функция отмечает все чекбоксы с указанным именем
+function toggle_all(source, elem_name) {
+    checkboxes = document.getElementsByName(elem_name);
+    for (var i = 0, n = checkboxes.length; i < n; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
+
 
 function update_current_situation() {
+    var red_percent = 1
+
     $.ajax({
         type: "POST",
         url: "#",
@@ -93,17 +106,16 @@ function update_current_situation() {
                     if (Object.keys(defect_rate).length > 0) {
                         $(`#camera_${line}`).remove();
                         $(`#${line}_container`).append(
-                            `<div class="infoboard_block_pair last_block" id="camera_${line}">
-                            </div>`
+                            `<div class="infoboard_block_pair last_block" id="camera_${line}"></div>`
                         );
 
                         $.each(defect_rate.defrate, function (cam) {
                             var percent = parseFloat(defect_rate.defrate[Number(cam)]).toFixed(2);
                             var minutes_ago = defect_rate.last_meas[Number(cam)];
-                            var style_is_red = is_red(percent, 1);
+                            var style_is_red = is_red(percent, red_percent);
 
                             $(`#camera_${line}`).append(
-                                `<div class="infoboard_block_small" >
+                                `<div class="infoboard_block_small">
                                     <p ${style_is_red}><b>${percent}%</b></p>
                                     <p>${minutes_ago}</p>
                                 </div>`)
@@ -111,7 +123,7 @@ function update_current_situation() {
                     };
 
                 // сообщение о времени последнего обновления страницы
-                var updated = new Date().toTimeString().slice(0, 8);
+                var updated = get_current_date()
                 $("#updated").html(`Updated at: ${updated}`);
             })
         },
@@ -130,6 +142,5 @@ function is_red(percent, rate) {
 
 // функция возвращает текущее время
 function get_current_date() {
-    var time_now = new Date().toTimeString().slice(0, 8);
-    return time_now;
+    return new Date().toTimeString().slice(0, 8);
 };

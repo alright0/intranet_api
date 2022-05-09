@@ -7,9 +7,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
     <title>{% block title %} {% endblock %}</title>
+
     {% block javascript %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
+    <script src="../static/js/scripts.js"></script>
     {% endblock %}
 </head>
 
@@ -23,6 +24,7 @@
         </div>
     </header>
     {% endblock %}
+
     {% block nav %}
     <div class="nav">
         <div class="topnav">
@@ -30,24 +32,12 @@
             </div>
     </div>
     {% endblock %}
-    <main>
 
+    <main>
         {% block content %}
         <div class="content">
             <H1>Under Costruction</H1>
         </div>
         {% endblock %}
-
     </main>
-
-    <footer>
-        <div class="logo_foot">
-            <a href="/"><img class="img_logo" src="../static/img/logo2.png" alt="logo" width="50px"></a>
-            <p>Silgan Metal Packaging 2021</p>
-        </div>
-    </footer>
-
 </body>
-
-
-</html>

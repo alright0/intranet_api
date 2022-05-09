@@ -1,18 +1,23 @@
 {% extends 'base.html' %}
 
+{% block title %}Statistics. Camera Graphs{% endblock %}
+
 {% block javascript %}
 {{super()}}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="../static/js/responsive_plot.js"></script>
 {% endblock %}
 
 {% block content %}
 <div class="input_form">
     <form action="#" id="calendar" method="POST" style="text-align: center;">
-        <input type="date" , name="calendar" id="calendar_input" min="2020-01-01">
+        <input type="date" name="calendar" id="calendar_input" min="2022-01-01">
 
         <div class="checkboxes">
-            <label><input type="checkbox" name="all_lines_checkbox" onClick="toggle_all(this, 'line_checkbox')"><b>All Lines</b></label>
+            <label>
+                <input type="checkbox" name="all_lines_checkbox" onClick="toggle_all(this, 'line_checkbox')">
+                <b>All Lines</b>
+            </label>
+
             {% for line in lines %}
             <label><input type="checkbox" name="line_checkbox" value={{line}}>{{line}}</label>
             {% endfor %}
