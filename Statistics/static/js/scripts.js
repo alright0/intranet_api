@@ -92,6 +92,23 @@ function toggle_all(source, elem_name) {
 }
 
 
+function summ_report_return(request_form) {
+    var form = $(`#${request_form}`);
+    $.ajax({
+        type: form.attr('method'),
+        url: form.attr('action'),
+        data: form.serialize(),
+        success: function (response) {
+            //var data = jQuery.parseJSON(response);
+            //console.log(data)
+            // очистка контейнера с графиками
+            $("#main_container").empty();
+            $("#main_container").append(response);
+        },
+        error:  (error) => append_err('Что-то пошло не так...')
+    })
+};
+
 function update_current_situation() {
     var red_percent = 1
 

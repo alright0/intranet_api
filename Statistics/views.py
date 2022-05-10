@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request
+from werkzeug.wrappers import response
+
 from Statistics.logic.logic import get_line_status
 from Statistics.logic.dataframes import CameraGraph
 from config import LINES
@@ -34,3 +36,15 @@ def index():
     lines_dict = dict(zip(LINES, lines_status))
 
     return render_template("index.html", LINES=LINES, lines_dict=lines_dict)
+
+
+@site.route("/report", methods=["GET", "POST"])
+def report():
+    """Главная страница"""
+    if request.method == "POST":
+        calendar_date = datetime.strptime(request.form.get("calendar"), "%Y-%m-%d")
+        data = CameraGraph(date=calendar_date)
+        return data.summary_report()
+
+    return render_template('report.html')
+

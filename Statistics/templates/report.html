@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistics. Report{% endblock %}
+
+{% block javascript %}
+{{super()}}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="input_form">
+    <form action="#" id="calendar" method="POST" style="text-align: center;">
+        <input type="date" name="calendar" id="calendar_input" min="2022-01-01">
+        <input type="submit" value="Показать">
+    </form>
+</div>
+<div class="production_plan" id="main_container" style="display:block;text-align: center;"></div>
+
+
+<!-- обновление графиков при обновлении календаря и списка линий -->
+<script>
+    $(document).ready(function () {
+        $("#calendar").submit(function (event) {
+            summ_report_return("calendar");
+            event.preventDefault();
+        });
+    });
+</script>
+
+<!-- вставка текущего месяца в календарь -->
+<script>
+    var today = new Date().toISOString().slice(0, 10);
+    var yestarday = new Date();
+
+    yestarday.setDate(yestarday.getDate() - 1);
+    yestarday = yestarday.toISOString().slice(0, 10);
+
+    document.getElementById("calendar_input").value = yestarday;
+    document.getElementById("calendar_input").max = today;
+</script>
+{% endblock %}

@@ -158,6 +158,22 @@ class CameraGraph:
             camera_result_df = pd.concat(df_camera_list)
         return camera_result_df
 
+
+    def summary_report(self):
+        camera_df = self._parse_camera()
+        try:
+            df = pd.pivot_table(
+                data=camera_df,
+                index=['line', 'line_side', 'job'],
+                values=['pcs_total', 'pcs_rejected'],
+                aggfunc='sum'
+            )
+        except KeyError as e:
+            return ''
+        return self.df_to_html(df)
+
+
+
     # READY: Преобразует графики в json
     @staticmethod
     def graph_to_json(fig):
@@ -235,3 +251,24 @@ class CameraGraph:
                 col=1,
                 row=i,
             )
+
+    def df_to_html(self, df):
+
+        html = (
+            df.style.format()
+                .set_properties(
+                **{
+                    "padding": "0 5px 0 5px",
+                    "border-bottom": "1px solid #e0e0e0",
+                    "text-align": "center",
+                }
+            )
+                .set_properties(**{"text-align": "right"}, )
+                .set_properties(
+                **{"font-weight": "600", "border-bottom": "none"},
+            )
+                #.hide_index()
+                .render()
+        )
+
+        return html
