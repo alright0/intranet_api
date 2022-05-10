@@ -63,7 +63,8 @@ class CameraGraph:
                                     y=x,
                                     name=camera_name_string,
                                     hovertemplate="<extra></extra>"
-                                                  + f"Работа: <b>{line_side}</b><br>"
+                                                  + f"<b>{line_side}</b><br>"
+                                                  + 'Работа: '
                                                   + camera_side_df["job"]
                                                   + "<br>Время: "
                                                   + camera_side_df["date_now_sys"].dt.strftime('%H:%M')
