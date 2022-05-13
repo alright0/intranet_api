@@ -87,7 +87,7 @@ class CameraGraph:
                             hovertemplate="Выброс: %{y:.2f}%",
                             row=1,
                             x=x * 100,
-                            range=[min_range, max_range],
+                            range=[min_range, max_range,],
                             showlegend=True,
                             y_title='Брак, %'
                         )
@@ -100,14 +100,15 @@ class CameraGraph:
                             x=x,
                             range=[
                                 x.max() * min_range_ratio or min_range,
-                                x.max() * max_range_ratio or max_range],
+                                x.max() * max_range_ratio or max_range,
+                            ],
                             showlegend=False,
                             y_title='Прирост, %'
                         )
 
                         x = camera_side_df["pcs_total"]
                         min_range, max_range = -50, 1000
-                        # наибольшее вхождение. хороший вариант для средней скорости
+                        # x_range - наибольший индекс среди максимальных вхождений. хороший вариант для средней скорости
                         x_range = x.value_counts().head(5).sort_index(ascending=False)
                         x_range = x_range.first_valid_index() if not x_range.empty else 0
                         _add_trace(
@@ -116,7 +117,8 @@ class CameraGraph:
                             x=x,
                             range=[
                                 x_range * min_range_ratio or min_range,
-                                x_range * max_range_ratio or max_range],
+                                x_range * max_range_ratio or max_range,
+                            ],
                             showlegend=False,
                             y_title='Средняя скорость, шт'
                         )
@@ -129,7 +131,8 @@ class CameraGraph:
                             x=x,
                             range=[
                                 x.max() * min_range_ratio or min_range,
-                                x.max() * max_range_ratio or max_range],
+                                x.max() * max_range_ratio or max_range,
+                            ],
                             showlegend=False,
                             y_title='Динамика выброса, шт',
 
