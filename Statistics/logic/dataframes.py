@@ -79,59 +79,72 @@ class CameraGraph:
                                 col=1,
                             )
 
+                            if empty_flag:
+                                self.add_nodata_annotation(fig, row)
+
                             fig.update_yaxes(range=range, col=1, row=row, title=y_title)
 
                         x = camera_side_df["defect_rate"]
                         min_range_ratio, max_range_ratio = -0.05, 1.125
+                        min_range, max_range = -0.5, 10
                         _add_trace(
                             hovertemplate="Выброс: %{y:.2f}%",
                             row=1,
                             x=x * 100,
-                            range=[-0.5, 10],
+                            range=[min_range, max_range],
                             showlegend=True,
                             y_title='Брак, %'
                         )
 
                         x = camera_side_df["total"]
+                        min_range, max_range = -5000, 100000
                         _add_trace(
                             hovertemplate="Абсолютый выпуск: %{y}",
                             row=2,
                             x=x,
-                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 100000],
+                            range=[
+                                x.max() * min_range_ratio or min_range,
+                                x.max() * max_range_ratio or max_range],
                             showlegend=False,
                             y_title='Прирост, %'
                         )
 
                         x = camera_side_df["pcs_total"]
+                        min_range, max_range = -50, 1000
+                        # наибольшее вхождение. хороший вариант для средней скорости
+                        x_range = x.value_counts().head(5).sort_index(ascending=False)
+                        x_range = x_range.first_valid_index() if not x_range.empty else 0
                         _add_trace(
                             hovertemplate="Скорость: %{y:} шт.",
                             row=3,
                             x=x,
-                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 1000],
+                            range=[
+                                x_range * min_range_ratio or min_range,
+                                x_range * max_range_ratio or max_range],
                             showlegend=False,
-                            y_title='Динамика скорсти, шт'
+                            y_title='Средняя скорость, шт'
                         )
 
                         x = camera_side_df["pcs_rejected"]
+                        min_range, max_range = -5, 100
                         _add_trace(
-                            hovertemplate="Абсольтный выброс: %{y:} шт.",
+                            hovertemplate="выброс: %{y:} шт.",
                             row=4,
                             x=x,
-                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 100],
+                            range=[
+                                x.max() * min_range_ratio or min_range,
+                                x.max() * max_range_ratio or max_range],
                             showlegend=False,
                             y_title='Динамика выброса, шт',
 
                         )
-
-                    if empty_flag:
-                        self.add_nodata_annotation(fig)
 
                     fig.update_layout(
                         title=f"Line: {line} Shift: {shift}",
                         margin=dict(l=10, r=10, t=30, b=10),
                         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
                     )
-                    fig.update_traces(xaxis='x3')
+                    fig.update_traces(xaxis='x4')
 
                     line_by_shift_list[line][shift] = self.graph_to_json(fig)
         return line_by_shift_list
@@ -249,23 +262,23 @@ class CameraGraph:
         return df_series.apply(lambda x: self.defrate_cutoff if x > self.defrate_cutoff else x)
 
     @staticmethod
-    def add_nodata_annotation(fig):
+    def add_nodata_annotation(fig, row):
         """
         Добавляет плашку NO DATA в центре пустого графика.
 
+        :param row: Номер ряда
         :param fig: plotly figure
         """
-        for i in range(1,5):
-            fig.add_annotation(
-                x=0.5,
-                y=0.5,
-                xref="x domain",
-                yref="y domain",
-                showarrow=False,
-                text="NO DATA",
-                col=1,
-                row=i,
-            )
+        fig.add_annotation(
+            x=0.5,
+            y=0.5,
+            xref="x domain",
+            yref="y domain",
+            showarrow=False,
+            text="NO DATA",
+            col=1,
+            row=row,
+        )
 
     def df_to_html(self, df):
 
