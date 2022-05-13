@@ -34,25 +34,21 @@ class CameraGraph:
             line_by_shift_list[line] = {}
             for shift in range(1, 4):
 
-                empty_flag = True  # флаг, указывающий, стоит ли вешать плашку "NO DATA"
-
                 fig = make_subplots(
                     rows=4,
                     cols=1,
                     vertical_spacing=0.02,
                     shared_xaxes=True,
-
                 )
+
                 if not camera_df.empty and line in IBEA_CAMERA_MAP:
                     for color_index, line_side in enumerate(IBEA_CAMERA_MAP[line]):
 
-                        camera_side_df = camera_df.loc[
-                            (camera_df["line_side"] == line_side)
+                        camera_line_df = camera_df.loc[
+                            (camera_df["line"] == line)
                             & (camera_df["shift"] == shift)
                         ]
-
-                        if not camera_side_df.empty:
-                            empty_flag = False
+                        camera_side_df = camera_line_df.loc[(camera_line_df["line_side"] == line_side)]
 
                         camera_name_string = self._build_legend_string(camera_side_df, line_side)
 
@@ -79,7 +75,7 @@ class CameraGraph:
                                 col=1,
                             )
 
-                            if empty_flag:
+                            if camera_line_df.empty:
                                 self.add_nodata_annotation(fig, row)
 
                             fig.update_yaxes(range=range, col=1, row=row, title=y_title)
