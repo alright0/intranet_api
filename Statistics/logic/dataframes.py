@@ -37,7 +37,7 @@ class CameraGraph:
                 empty_flag = True  # флаг, указывающий, стоит ли вешать плашку "NO DATA"
 
                 fig = make_subplots(
-                    rows=3,
+                    rows=4,
                     cols=1,
                     vertical_spacing=0.02,
                     shared_xaxes=True,
@@ -78,32 +78,46 @@ class CameraGraph:
                                 row=row,
                                 col=1,
                             )
+
                             fig.update_yaxes(range=range, col=1, row=row, title=y_title)
 
-
+                        x = camera_side_df["defect_rate"]
+                        min_range_ratio, max_range_ratio = -0.05, 1.125
                         _add_trace(
                             hovertemplate="Выброс: %{y:.2f}%",
                             row=1,
-                            x=camera_side_df["defect_rate"] * 100,
+                            x=x * 100,
                             range=[-0.5, 10],
                             showlegend=True,
                             y_title='Брак, %'
                         )
 
+                        x = camera_side_df["total"]
+                        _add_trace(
+                            hovertemplate="Абсолютый выпуск: %{y}",
+                            row=2,
+                            x=x,
+                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 100000],
+                            showlegend=False,
+                            y_title='Прирост, %'
+                        )
+
+                        x = camera_side_df["pcs_total"]
                         _add_trace(
                             hovertemplate="Скорость: %{y:} шт.",
-                            row=2,
-                            x=camera_side_df["pcs_total"],
-                            range=[-50, 1000],
+                            row=3,
+                            x=x,
+                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 1000],
                             showlegend=False,
                             y_title='Динамика скорсти, шт'
                         )
 
+                        x = camera_side_df["pcs_rejected"]
                         _add_trace(
                             hovertemplate="Абсольтный выброс: %{y:} шт.",
-                            row=3,
-                            x=camera_side_df["pcs_rejected"],
-                            range=[-2.5, 50],
+                            row=4,
+                            x=x,
+                            range=[x.max() * min_range_ratio, x.max() * max_range_ratio if x.max() else 100],
                             showlegend=False,
                             y_title='Динамика выброса, шт',
 
@@ -168,6 +182,7 @@ class CameraGraph:
                 values=['pcs_total', 'pcs_rejected'],
                 aggfunc='sum'
             )
+            df['percent'] = df['pcs_rejected']/df['pcs_total'] * 100
         except KeyError as e:
             return ''
         return self.df_to_html(df)
@@ -240,7 +255,7 @@ class CameraGraph:
 
         :param fig: plotly figure
         """
-        for i in range(1,4):
+        for i in range(1,5):
             fig.add_annotation(
                 x=0.5,
                 y=0.5,

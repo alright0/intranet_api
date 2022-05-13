@@ -99,9 +99,6 @@ function summ_report_return(request_form) {
         url: form.attr('action'),
         data: form.serialize(),
         success: function (response) {
-            //var data = jQuery.parseJSON(response);
-            //console.log(data)
-            // очистка контейнера с графиками
             $("#main_container").empty();
             $("#main_container").append(response);
         },
