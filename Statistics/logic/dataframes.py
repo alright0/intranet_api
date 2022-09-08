@@ -18,7 +18,7 @@ class CameraGraph:
         self.date = date_start
         self.lines = lines
         self.date_start = self.date + timedelta(hours=6)
-        self.date_end = self.date + timedelta(days=1, hours=6) if not date_end else date_end
+        self.date_end = date_end + timedelta(hours=6) if date_end else self.date + timedelta(days=1, hours=6)
 
         self.defrate_cutoff = 0.1
 
@@ -188,10 +188,15 @@ class CameraGraph:
     def summary_report(self):
         camera_df = self._parse_camera()
         try:
-            camera_df['date'] = camera_df['date_now_sys'].dt.date
+            camera_df['date_not_calibrated'] = camera_df['date_now_sys'].dt.date
+            camera_df['date'] = camera_df['date_now_sys'].apply(lambda x: x - timedelta(days=1)
+                                                                if x.hour < 6 else x).dt.date
+
+            camera_df['hour'] = camera_df['date_now_sys'].dt.hour
+            print(camera_df)
             df = pd.pivot_table(
                 data=camera_df,
-                index=['date', 'shift', 'line', 'line_side', 'job'],
+                index=['date_not_calibrated', 'date', 'hour', 'shift', 'line', 'line_side', 'job'],
                 values=['pcs_total', 'pcs_rejected'],
                 aggfunc='sum'
             ).reset_index()
