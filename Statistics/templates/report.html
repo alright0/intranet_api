@@ -10,7 +10,8 @@
 {% block content %}
 <div class="input_form">
     <form action="#" id="calendar" method="POST" style="text-align: center;">
-        <input type="date" name="calendar" id="calendar_input" min="2022-01-01">
+        <input type="date" name="calendar_from" id="calendar_input_from" min="2022-01-01">
+        <input type="date" name="calendar_to" id="calendar_input_to" min="2022-01-01">
         <input type="submit" value="Показать">
     </form>
 </div>
@@ -35,7 +36,9 @@
     yestarday.setDate(yestarday.getDate() - 1);
     yestarday = yestarday.toISOString().slice(0, 10);
 
-    document.getElementById("calendar_input").value = yestarday;
-    document.getElementById("calendar_input").max = today;
+    document.getElementById("calendar_input_from").value = yestarday;
+    document.getElementById("calendar_input_from").max = today;
+    document.getElementById("calendar_input_to").value = yestarday;
+    document.getElementById("calendar_input_to").max = today;
 </script>
 {% endblock %}

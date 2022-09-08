@@ -42,8 +42,9 @@ def index():
 def report():
     """Главная страница"""
     if request.method == "POST":
-        calendar_date = datetime.strptime(request.form.get("calendar"), "%Y-%m-%d")
-        data = CameraGraph(date=calendar_date)
+        date_from = datetime.strptime(request.form.get("calendar_from"), "%Y-%m-%d")
+        date_to = datetime.strptime(request.form.get("calendar_to"), "%Y-%m-%d")
+        data = CameraGraph(date_from=date_from, date_to=date_to)
         return data.summary_report()
 
     return render_template('report.html')
