@@ -14,11 +14,11 @@ from Statistics.models import *
 class CameraGraph:
     """Класс формирует данные для plotly.js"""
 
-    def __init__(self, date, lines=LINES):
-        self.date = date
+    def __init__(self, date_start, date_end=None, lines=LINES):
+        self.date = date_start
         self.lines = lines
         self.date_start = self.date + timedelta(hours=6)
-        self.date_end = self.date + timedelta(days=1, hours=6)
+        self.date_end = self.date + timedelta(days=1, hours=6) if not date_end else date_end
 
         self.defrate_cutoff = 0.1
 
@@ -188,13 +188,15 @@ class CameraGraph:
     def summary_report(self):
         camera_df = self._parse_camera()
         try:
+            camera_df['date'] = camera_df['date_now_sys'].dt.date
             df = pd.pivot_table(
                 data=camera_df,
-                index=['line', 'line_side', 'job'],
+                index=['date', 'shift', 'line', 'line_side', 'job'],
                 values=['pcs_total', 'pcs_rejected'],
                 aggfunc='sum'
-            )
+            ).reset_index()
             df['percent'] = df['pcs_rejected']/df['pcs_total'] * 100
+            df.fillna(0, inplace=True)
         except KeyError as e:
             return ''
         return self.df_to_html(df)
@@ -287,14 +289,15 @@ class CameraGraph:
                 **{
                     "padding": "0 5px 0 5px",
                     "border-bottom": "1px solid #e0e0e0",
-                    "text-align": "center",
+                    "text-align": "right",
+                    "border": "solid black 1px",
                 }
             )
                 .set_properties(**{"text-align": "right"}, )
                 .set_properties(
-                **{"font-weight": "600", "border-bottom": "none"},
+                **{"font-weight": "500", "border-bottom": "none"},
             )
-                #.hide_index()
+                .hide_index()
                 .render()
         )
 

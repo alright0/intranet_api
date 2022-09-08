@@ -16,7 +16,7 @@ def detailed_daily_report():
     if request.method == "POST":
         lines_list = request.form.getlist("line_checkbox")
         calendar_date = datetime.strptime(request.form.get("calendar"), "%Y-%m-%d")
-        new_response = CameraGraph(date=calendar_date, lines=lines_list)
+        new_response = CameraGraph(date_start=calendar_date, lines=lines_list)
         return json.dumps(new_response.graph())
 
     return render_template("detailed_daily_report.html", lines=LINES)
@@ -44,7 +44,7 @@ def report():
     if request.method == "POST":
         date_from = datetime.strptime(request.form.get("calendar_from"), "%Y-%m-%d")
         date_to = datetime.strptime(request.form.get("calendar_to"), "%Y-%m-%d")
-        data = CameraGraph(date_from=date_from, date_to=date_to)
+        data = CameraGraph(date_from, date_to)
         return data.summary_report()
 
     return render_template('report.html')
