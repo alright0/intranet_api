@@ -187,26 +187,23 @@ class CameraGraph:
 
     def summary_report(self):
         camera_df = self._parse_camera()
+
         try:
-            camera_df['date_not_calibrated'] = camera_df['date_now_sys'].dt.date
             camera_df['date'] = camera_df['date_now_sys'].apply(lambda x: x - timedelta(days=1)
                                                                 if x.hour < 6 else x).dt.date
-
-            camera_df['hour'] = camera_df['date_now_sys'].dt.hour
-            print(camera_df)
             df = pd.pivot_table(
                 data=camera_df,
-                index=['date_not_calibrated', 'date', 'hour', 'shift', 'line', 'line_side', 'job'],
+                index=['date', 'shift', 'line', 'line_side', 'job'],
                 values=['pcs_total', 'pcs_rejected'],
                 aggfunc='sum'
             ).reset_index()
             df['percent'] = df['pcs_rejected']/df['pcs_total'] * 100
             df.fillna(0, inplace=True)
+
+            df['percent'] = df['percent'].apply(lambda x: '{:.2f}'.format(x))
         except KeyError as e:
             return ''
         return self.df_to_html(df)
-
-
 
     # READY: Преобразует графики в json
     @staticmethod
@@ -296,14 +293,9 @@ class CameraGraph:
                     "border-bottom": "1px solid #e0e0e0",
                     "text-align": "right",
                     "border": "solid black 1px",
+                    "font-weight": "500"
                 }
-            )
-                .set_properties(**{"text-align": "right"}, )
-                .set_properties(
-                **{"font-weight": "500", "border-bottom": "none"},
-            )
-                .hide_index()
-                .render()
+            ).hide_index().render()
         )
 
         return html
