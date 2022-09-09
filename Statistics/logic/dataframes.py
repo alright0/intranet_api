@@ -18,7 +18,7 @@ class CameraGraph:
         self.date = date_start
         self.lines = lines
         self.date_start = self.date + timedelta(hours=6)
-        self.date_end = date_end + timedelta(hours=6) if date_end else self.date + timedelta(days=1, hours=6)
+        self.date_end = (date_end or self.date) + timedelta(days=1, hours=6)
 
         self.defrate_cutoff = 0.1
 
@@ -295,7 +295,9 @@ class CameraGraph:
                     "border": "solid black 1px",
                     "font-weight": "500"
                 }
-            ).hide_index().render()
+            )
+            .hide_index()
+            .render()
         )
 
         return html

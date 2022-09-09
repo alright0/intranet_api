@@ -92,15 +92,26 @@ function toggle_all(source, elem_name) {
 }
 
 
-function summ_report_return(request_form) {
-    var form = $(`#${request_form}`);
+function show_report() {
+    let main_container = document.getElementById('main_container')
+    let calendar = document.getElementById('calendar')
+
+    let date_start = document.getElementById("calendar_input_from").value
+    let date_end = document.getElementById("calendar_input_to").value
+
+    let new_date_start = new Date(date_start)
+    let new_date_end = new Date(date_end)
+    if (new_date_start > new_date_end) {
+        main_container.innerHTML = 'Начальная дата больше конечной'
+        return
+    }
+
     $.ajax({
-        type: form.attr('method'),
-        url: form.attr('action'),
-        data: form.serialize(),
+        type: "POST",
+        url: '#',
+        data: {date_start, date_end},
         success: function (response) {
-            $("#main_container").empty();
-            $("#main_container").append(response);
+            main_container.innerHTML = response
         },
         error:  (error) => append_err('Что-то пошло не так...')
     })
